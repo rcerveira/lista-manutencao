@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { TaskItem } from "@/components/TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -60,6 +61,17 @@ export default function Index() {
     maintenanceDate: "",
   });
   const { toast } = useToast();
+
+  // Effect to sort tasks whenever completedTasks changes
+  useEffect(() => {
+    const sortedTasks = [...tasks].sort((a, b) => {
+      const aCompleted = completedTasks.includes(a);
+      const bCompleted = completedTasks.includes(b);
+      if (aCompleted === bCompleted) return 0;
+      return aCompleted ? 1 : -1;
+    });
+    setTasks(sortedTasks);
+  }, [completedTasks]);
 
   const handleToggleTask = (task: string, completed: boolean) => {
     setCompletedTasks((prev) =>
