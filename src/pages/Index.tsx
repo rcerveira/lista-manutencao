@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TaskItem } from "@/components/TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,10 +42,23 @@ const initialTasks = [
   "Teste"
 ];
 
+interface MaintenanceInfo {
+  clientName: string;
+  serialNumber: string;
+  year: string;
+  maintenanceDate: string;
+}
+
 export default function Index() {
   const [tasks, setTasks] = useState(initialTasks);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [newTask, setNewTask] = useState("");
+  const [maintenanceInfo, setMaintenanceInfo] = useState<MaintenanceInfo>({
+    clientName: "",
+    serialNumber: "",
+    year: "",
+    maintenanceDate: "",
+  });
   const { toast } = useToast();
 
   const handleToggleTask = (task: string, completed: boolean) => {
@@ -92,6 +104,13 @@ export default function Index() {
     });
   };
 
+  const handleInfoChange = (field: keyof MaintenanceInfo, value: string) => {
+    setMaintenanceInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const progress = (completedTasks.length / tasks.length) * 100;
 
   return (
@@ -101,7 +120,53 @@ export default function Index() {
           <CardTitle className="text-center text-2xl font-bold">
             Lista de Manutenção
           </CardTitle>
-          <div className="mt-2 space-y-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="space-y-2">
+              <label htmlFor="clientName" className="text-sm font-medium">
+                Nome do Cliente
+              </label>
+              <Input
+                id="clientName"
+                placeholder="Nome do cliente"
+                value={maintenanceInfo.clientName}
+                onChange={(e) => handleInfoChange("clientName", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="serialNumber" className="text-sm font-medium">
+                Número de Série
+              </label>
+              <Input
+                id="serialNumber"
+                placeholder="Número de série"
+                value={maintenanceInfo.serialNumber}
+                onChange={(e) => handleInfoChange("serialNumber", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="year" className="text-sm font-medium">
+                Ano
+              </label>
+              <Input
+                id="year"
+                placeholder="Ano"
+                value={maintenanceInfo.year}
+                onChange={(e) => handleInfoChange("year", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="maintenanceDate" className="text-sm font-medium">
+                Data da Manutenção
+              </label>
+              <Input
+                id="maintenanceDate"
+                type="date"
+                value={maintenanceInfo.maintenanceDate}
+                onChange={(e) => handleInfoChange("maintenanceDate", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="mt-6 space-y-1">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Progresso</span>
               <span>{Math.round(progress)}%</span>
