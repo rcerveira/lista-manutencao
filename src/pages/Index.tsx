@@ -111,6 +111,30 @@ export default function Index() {
     }));
   };
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    const dragIndex = Number(e.dataTransfer.getData('text/plain'));
+    if (dragIndex === dropIndex) return;
+
+    const newTasks = [...tasks];
+    const [draggedTask] = newTasks.splice(dragIndex, 1);
+    newTasks.splice(dropIndex, 0, draggedTask);
+    setTasks(newTasks);
+    
+    toast({
+      title: "Tarefa movida",
+      description: "A ordem das tarefas foi atualizada.",
+    });
+  };
+
   const progress = (completedTasks.length / tasks.length) * 100;
 
   return (
@@ -188,15 +212,22 @@ export default function Index() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {tasks.map((task) => (
-            <TaskItem
+          {tasks.map((task, index) => (
+            <div
               key={task}
-              task={task}
-              isCompleted={completedTasks.includes(task)}
-              onToggle={(completed) => handleToggleTask(task, completed)}
-              onDelete={() => handleDeleteTask(task)}
-              onEdit={(newText) => handleEditTask(task, newText)}
-            />
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, index)}
+            >
+              <TaskItem
+                task={task}
+                isCompleted={completedTasks.includes(task)}
+                onToggle={(completed) => handleToggleTask(task, completed)}
+                onDelete={() => handleDeleteTask(task)}
+                onEdit={(newText) => handleEditTask(task, newText)}
+              />
+            </div>
           ))}
         </CardContent>
       </Card>

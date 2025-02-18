@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { Wrench, Settings, Trash2, Pencil, X, Check } from "lucide-react";
+import { Wrench, Settings, Trash2, Pencil, X, Check, GripVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface TaskItemProps {
@@ -11,6 +11,7 @@ interface TaskItemProps {
   onToggle: (completed: boolean) => void;
   onDelete: () => void;
   onEdit: (newText: string) => void;
+  draggable?: boolean;
 }
 
 export function TaskItem({ 
@@ -18,7 +19,8 @@ export function TaskItem({
   isCompleted = false, 
   onToggle, 
   onDelete,
-  onEdit 
+  onEdit,
+  draggable = true
 }: TaskItemProps) {
   const [checked, setChecked] = useState(isCompleted);
   const [isEditing, setIsEditing] = useState(false);
@@ -46,9 +48,13 @@ export function TaskItem({
       className={cn(
         "group flex items-center space-x-4 rounded-lg border p-4 transition-all hover:bg-accent",
         checked && "bg-muted/50",
-        "animate-task-bounce"
+        "animate-task-bounce cursor-move"
       )}
+      draggable={draggable}
     >
+      {draggable && (
+        <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab active:cursor-grabbing" />
+      )}
       <Checkbox
         checked={checked}
         onCheckedChange={handleCheck}
