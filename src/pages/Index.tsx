@@ -3,8 +3,12 @@ import { useState } from "react";
 import { TaskItem } from "@/components/TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
-const maintenanceTasks = [
+const initialTasks = [
   "Desmontagem e Jateamento",
   "Desmontagem do queixo",
   "Silo",
@@ -40,7 +44,10 @@ const maintenanceTasks = [
 ];
 
 export default function Index() {
+  const [tasks, setTasks] = useState(initialTasks);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+  const [newTask, setNewTask] = useState("");
+  const { toast } = useToast();
 
   const handleToggleTask = (task: string, completed: boolean) => {
     setCompletedTasks((prev) =>
@@ -50,7 +57,42 @@ export default function Index() {
     );
   };
 
-  const progress = (completedTasks.length / maintenanceTasks.length) * 100;
+  const handleAddTask = () => {
+    if (newTask.trim()) {
+      setTasks((prev) => [...prev, newTask.trim()]);
+      setNewTask("");
+      toast({
+        title: "Tarefa adicionada",
+        description: "Nova tarefa foi adicionada com sucesso.",
+      });
+    }
+  };
+
+  const handleDeleteTask = (taskToDelete: string) => {
+    setTasks((prev) => prev.filter((task) => task !== taskToDelete));
+    setCompletedTasks((prev) => prev.filter((task) => task !== taskToDelete));
+    toast({
+      title: "Tarefa removida",
+      description: "A tarefa foi removida com sucesso.",
+    });
+  };
+
+  const handleEditTask = (oldTask: string, newText: string) => {
+    setTasks((prev) =>
+      prev.map((task) => (task === oldTask ? newText : task))
+    );
+    if (completedTasks.includes(oldTask)) {
+      setCompletedTasks((prev) =>
+        prev.map((task) => (task === oldTask ? newText : task))
+      );
+    }
+    toast({
+      title: "Tarefa atualizada",
+      description: "A tarefa foi atualizada com sucesso.",
+    });
+  };
+
+  const progress = (completedTasks.length / tasks.length) * 100;
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
@@ -66,14 +108,29 @@ export default function Index() {
             </div>
             <Progress value={progress} className="h-2" />
           </div>
+          <div className="mt-4 flex gap-2">
+            <Input
+              placeholder="Adicionar nova tarefa..."
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+              className="flex-1"
+            />
+            <Button onClick={handleAddTask}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {maintenanceTasks.map((task) => (
+          {tasks.map((task) => (
             <TaskItem
               key={task}
               task={task}
               isCompleted={completedTasks.includes(task)}
               onToggle={(completed) => handleToggleTask(task, completed)}
+              onDelete={() => handleDeleteTask(task)}
+              onEdit={(newText) => handleEditTask(task, newText)}
             />
           ))}
         </CardContent>
