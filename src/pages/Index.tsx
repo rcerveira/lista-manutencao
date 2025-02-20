@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, CheckCircle2, Circle, ListTodo } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { MaintenanceListModal } from "@/components/MaintenanceListModal";
 
@@ -150,105 +150,146 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-      <Card className="mx-auto max-w-4xl">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <CardTitle className="text-center text-2xl font-bold">
-              Lista de Manutenção
-            </CardTitle>
-            <MaintenanceListModal 
-              tasks={tasks}
-              completedTasks={completedTasks}
-              maintenanceInfo={maintenanceInfo}
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div className="space-y-2">
-              <label htmlFor="clientName" className="text-sm font-medium">
-                Nome do Cliente
-              </label>
+      <div className="mx-auto max-w-4xl space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Tarefas</CardTitle>
+              <ListTodo className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{tasks.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Total de itens na lista
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tarefas Concluídas</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{completedTasks.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Itens marcados como concluídos
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tarefas Pendentes</CardTitle>
+              <Circle className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{tasks.length - completedTasks.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Itens ainda não concluídos
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between mb-4">
+              <CardTitle className="text-center text-2xl font-bold">
+                Lista de Manutenção
+              </CardTitle>
+              <MaintenanceListModal 
+                tasks={tasks}
+                completedTasks={completedTasks}
+                maintenanceInfo={maintenanceInfo}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <label htmlFor="clientName" className="text-sm font-medium">
+                  Nome do Cliente
+                </label>
+                <Input
+                  id="clientName"
+                  placeholder="Nome do cliente"
+                  value={maintenanceInfo.clientName}
+                  onChange={(e) => handleInfoChange("clientName", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="serialNumber" className="text-sm font-medium">
+                  Número de Série
+                </label>
+                <Input
+                  id="serialNumber"
+                  placeholder="Número de série"
+                  value={maintenanceInfo.serialNumber}
+                  onChange={(e) => handleInfoChange("serialNumber", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="year" className="text-sm font-medium">
+                  Ano
+                </label>
+                <Input
+                  id="year"
+                  placeholder="Ano"
+                  value={maintenanceInfo.year}
+                  onChange={(e) => handleInfoChange("year", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="maintenanceDate" className="text-sm font-medium">
+                  Data da Manutenção
+                </label>
+                <Input
+                  id="maintenanceDate"
+                  type="date"
+                  value={maintenanceInfo.maintenanceDate}
+                  onChange={(e) => handleInfoChange("maintenanceDate", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="mt-6 space-y-1">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Progresso</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+            <div className="mt-4 flex gap-2">
               <Input
-                id="clientName"
-                placeholder="Nome do cliente"
-                value={maintenanceInfo.clientName}
-                onChange={(e) => handleInfoChange("clientName", e.target.value)}
+                placeholder="Adicionar nova tarefa..."
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+                className="flex-1"
               />
+              <Button onClick={handleAddTask}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar
+              </Button>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="serialNumber" className="text-sm font-medium">
-                Número de Série
-              </label>
-              <Input
-                id="serialNumber"
-                placeholder="Número de série"
-                value={maintenanceInfo.serialNumber}
-                onChange={(e) => handleInfoChange("serialNumber", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="year" className="text-sm font-medium">
-                Ano
-              </label>
-              <Input
-                id="year"
-                placeholder="Ano"
-                value={maintenanceInfo.year}
-                onChange={(e) => handleInfoChange("year", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="maintenanceDate" className="text-sm font-medium">
-                Data da Manutenção
-              </label>
-              <Input
-                id="maintenanceDate"
-                type="date"
-                value={maintenanceInfo.maintenanceDate}
-                onChange={(e) => handleInfoChange("maintenanceDate", e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="mt-6 space-y-1">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Progresso</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-          <div className="mt-4 flex gap-2">
-            <Input
-              placeholder="Adicionar nova tarefa..."
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-              className="flex-1"
-            />
-            <Button onClick={handleAddTask}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {tasks.map((task, index) => (
-            <div
-              key={task}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, index)}
-            >
-              <TaskItem
-                task={task}
-                isCompleted={completedTasks.includes(task)}
-                onToggle={(completed) => handleToggleTask(task, completed)}
-                onDelete={() => handleDeleteTask(task)}
-                onEdit={(newText) => handleEditTask(task, newText)}
-              />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {tasks.map((task, index) => (
+              <div
+                key={task}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, index)}
+              >
+                <TaskItem
+                  task={task}
+                  isCompleted={completedTasks.includes(task)}
+                  onToggle={(completed) => handleToggleTask(task, completed)}
+                  onDelete={() => handleDeleteTask(task)}
+                  onEdit={(newText) => handleEditTask(task, newText)}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
