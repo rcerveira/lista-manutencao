@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight } from "lucide-react";
+import { Plus, ArrowRight, CheckCircle2, Circle, ListTodo } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface MaintenanceRecord {
@@ -46,15 +46,59 @@ export default function Index() {
     navigate(`/manutencao/${id}`);
   };
 
+  // Calculate statistics
+  const totalMaintenances = maintenanceRecords.length;
+  const completedMaintenances = maintenanceRecords.filter(record => record.progress === 100).length;
+  const inProgressMaintenances = maintenanceRecords.filter(record => record.progress > 0 && record.progress < 100).length;
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-      <div className="mx-auto max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Manutenções</h1>
           <Button onClick={handleCreateNew}>
             <Plus className="h-4 w-4 mr-2" />
             Nova Manutenção
           </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Manutenções</CardTitle>
+              <ListTodo className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalMaintenances}</div>
+              <p className="text-xs text-muted-foreground">
+                Manutenções cadastradas
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{completedMaintenances}</div>
+              <p className="text-xs text-muted-foreground">
+                Manutenções finalizadas
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
+              <Circle className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{inProgressMaintenances}</div>
+              <p className="text-xs text-muted-foreground">
+                Manutenções em execução
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-4">
