@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TaskItem } from "@/components/TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { MaintenanceListModal } from "@/components/MaintenanceListModal";
 
 const initialTasks = [
   "Desmontagem e Jateamento",
@@ -62,7 +62,6 @@ export default function Index() {
   });
   const { toast } = useToast();
 
-  // Effect to sort tasks whenever completedTasks changes
   useEffect(() => {
     const sortedTasks = [...tasks].sort((a, b) => {
       const aCompleted = completedTasks.includes(a);
@@ -153,9 +152,16 @@ export default function Index() {
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <Card className="mx-auto max-w-4xl">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">
-            Lista de Manutenção
-          </CardTitle>
+          <div className="flex items-center justify-between mb-4">
+            <CardTitle className="text-center text-2xl font-bold">
+              Lista de Manutenção
+            </CardTitle>
+            <MaintenanceListModal 
+              tasks={tasks}
+              completedTasks={completedTasks}
+              maintenanceInfo={maintenanceInfo}
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div className="space-y-2">
               <label htmlFor="clientName" className="text-sm font-medium">
