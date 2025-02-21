@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight, CheckCircle2, Circle, ListTodo } from "lucide-react";
+import { Plus, ArrowRight, CheckCircle2, Circle, ListTodo, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 
 interface MaintenanceRecord {
   id: string;
@@ -37,6 +38,7 @@ const mockMaintenanceRecords: MaintenanceRecord[] = [
 export default function Index() {
   const navigate = useNavigate();
   const [maintenanceRecords] = useState<MaintenanceRecord[]>(mockMaintenanceRecords);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleCreateNew = () => {
     navigate("/manutencao/nova");
@@ -50,6 +52,14 @@ export default function Index() {
   const totalMaintenances = maintenanceRecords.length;
   const completedMaintenances = maintenanceRecords.filter(record => record.progress === 100).length;
   const inProgressMaintenances = maintenanceRecords.filter(record => record.progress > 0 && record.progress < 100).length;
+
+  // Filter records based on search query
+  const filteredRecords = maintenanceRecords.filter(record => 
+    record.progress < 100 && // Only in progress
+    (record.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     record.serialNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     record.model.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
@@ -101,8 +111,18 @@ export default function Index() {
           </Card>
         </div>
 
+        <div className="flex items-center space-x-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar manutenções em andamento..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+
         <div className="grid gap-4">
-          {maintenanceRecords.map((record) => (
+          {filteredRecords.map((record) => (
             <Card
               key={record.id}
               className="hover:bg-accent/50 cursor-pointer transition-colors"

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TaskItem } from "@/components/TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +49,7 @@ interface MaintenanceInfo {
   clientName: string;
   serialNumber: string;
   year: string;
+  model: string;
   maintenanceDate: string;
 }
 
@@ -60,6 +62,7 @@ export default function ManutencaoDetalhes() {
     clientName: "",
     serialNumber: "",
     year: "",
+    model: "",
     maintenanceDate: "",
   });
   const { toast } = useToast();
@@ -211,16 +214,29 @@ export default function ManutencaoDetalhes() {
                   onChange={(e) => handleInfoChange("serialNumber", e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
-                <label htmlFor="year" className="text-sm font-medium">
-                  Ano
-                </label>
-                <Input
-                  id="year"
-                  placeholder="Ano"
-                  value={maintenanceInfo.year}
-                  onChange={(e) => handleInfoChange("year", e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="year" className="text-sm font-medium">
+                    Ano
+                  </label>
+                  <Input
+                    id="year"
+                    placeholder="Ano"
+                    value={maintenanceInfo.year}
+                    onChange={(e) => handleInfoChange("year", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="model" className="text-sm font-medium">
+                    Modelo
+                  </label>
+                  <Input
+                    id="model"
+                    placeholder="Modelo"
+                    value={maintenanceInfo.model}
+                    onChange={(e) => handleInfoChange("model", e.target.value)}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label htmlFor="maintenanceDate" className="text-sm font-medium">
@@ -228,7 +244,7 @@ export default function ManutencaoDetalhes() {
                 </label>
                 <Input
                   id="maintenanceDate"
-                  type="date"
+                  type="month"
                   value={maintenanceInfo.maintenanceDate}
                   onChange={(e) => handleInfoChange("maintenanceDate", e.target.value)}
                 />
