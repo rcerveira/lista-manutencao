@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft } from "lucide-react";
+import { Plus, ArrowLeft, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { MaintenanceListModal } from "@/components/MaintenanceListModal";
 import { useNavigate, useParams } from "react-router-dom";
@@ -148,6 +148,14 @@ export default function ManutencaoDetalhes() {
     });
   };
 
+  const handlePrintPDF = () => {
+    window.print();
+    toast({
+      title: "Gerando PDF",
+      description: "O PDF está sendo gerado para impressão.",
+    });
+  };
+
   const progress = (completedTasks.length / tasks.length) * 100;
 
   return (
@@ -164,11 +172,21 @@ export default function ManutencaoDetalhes() {
               <CardTitle className="text-center text-2xl font-bold">
                 Lista de Manutenção
               </CardTitle>
-              <MaintenanceListModal 
-                tasks={tasks}
-                completedTasks={completedTasks}
-                maintenanceInfo={maintenanceInfo}
-              />
+              <div className="space-y-2">
+                <MaintenanceListModal 
+                  tasks={tasks}
+                  completedTasks={completedTasks}
+                  maintenanceInfo={maintenanceInfo}
+                />
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={handlePrintPDF}
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  Imprimir PDF
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div className="space-y-2">
