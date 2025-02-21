@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
-import { TaskItem } from "@/components/TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { MaintenanceListModal } from "@/components/MaintenanceListModal";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MaintenanceTask } from "@/types/maintenance";
+import { MaintenanceHeader } from "@/components/maintenance/MaintenanceHeader";
+import { MaintenanceActions } from "@/components/maintenance/MaintenanceActions";
+import { MaintenanceInfo } from "@/components/maintenance/MaintenanceInfo";
+import { MaintenanceProgress } from "@/components/maintenance/MaintenanceProgress";
+import { MaintenanceTaskList } from "@/components/maintenance/MaintenanceTaskList";
 
 const initialTasks = [
   "Desmontagem e Jateamento",
@@ -61,7 +60,6 @@ export default function ManutencaoDetalhes() {
   const queryClient = useQueryClient();
   const [tasks, setTasks] = useState(initialTasks);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
-  const [newTask, setNewTask] = useState("");
   const [maintenanceInfo, setMaintenanceInfo] = useState<MaintenanceInfo>({
     clientName: "",
     serialNumber: "",
@@ -238,9 +236,7 @@ export default function ManutencaoDetalhes() {
 
   const handleToggleTask = (task: string, completed: boolean) => {
     setCompletedTasks((prev) =>
-      completed
-        ? [...prev, task]
-        : prev.filter((t) => t !== task)
+      completed ? [...prev, task] : prev.filter((t) => t !== task)
     );
     
     if (id) {
@@ -249,20 +245,17 @@ export default function ManutencaoDetalhes() {
     }
   };
 
-  const handleAddTask = () => {
-    if (newTask.trim()) {
-      setTasks((prev) => [...prev, newTask.trim()]);
-      setNewTask("");
-      
-      if (id) {
-        updateTasksMutation.mutate();
-      }
-      
-      toast({
-        title: "Tarefa adicionada",
-        description: "Nova tarefa foi adicionada com sucesso.",
-      });
+  const handleAddTask = (task: string) => {
+    setTasks((prev) => [...prev, task]);
+    
+    if (id) {
+      updateTasksMutation.mutate();
     }
+    
+    toast({
+      title: "Tarefa adicionada",
+      description: "Nova tarefa foi adicionada com sucesso.",
+    });
   };
 
   const handleDeleteTask = (taskToDelete: string) => {
@@ -311,19 +304,7 @@ export default function ManutencaoDetalhes() {
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    e.dataTransfer.setData('text/plain', index.toString());
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    const dragIndex = Number(e.dataTransfer.getData('text/plain'));
-    if (dragIndex === dropIndex) return;
-
+  const handleReorderTasks = (dragIndex: number, dropIndex: number) => {
     const newTasks = [...tasks];
     const [draggedTask] = newTasks.splice(dragIndex, 1);
     newTasks.splice(dropIndex, 0, draggedTask);
@@ -339,23 +320,12 @@ export default function ManutencaoDetalhes() {
     });
   };
 
-  const handlePrintPDF = () => {
-    window.print();
-    toast({
-      title: "Gerando PDF",
-      description: "O PDF está sendo gerado para impressão.",
-    });
-  };
-
   const progress = (completedTasks.length / tasks.length) * 100;
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="mx-auto max-w-4xl">
-        <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
+        <MaintenanceHeader />
 
         <Card>
           <CardHeader>
@@ -363,121 +333,30 @@ export default function ManutencaoDetalhes() {
               <CardTitle className="text-center text-2xl font-bold">
                 Lista de Manutenção
               </CardTitle>
-              <div className="space-y-2">
-                <MaintenanceListModal 
-                  tasks={tasks}
-                  completedTasks={completedTasks}
-                  maintenanceInfo={maintenanceInfo}
-                />
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  onClick={handlePrintPDF}
-                >
-                  <Printer className="h-4 w-4 mr-2" />
-                  Imprimir PDF
-                </Button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div className="space-y-2">
-                <label htmlFor="clientName" className="text-sm font-medium">
-                  Nome do Cliente
-                </label>
-                <Input
-                  id="clientName"
-                  placeholder="Nome do cliente"
-                  value={maintenanceInfo.clientName}
-                  onChange={(e) => handleInfoChange("clientName", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="serialNumber" className="text-sm font-medium">
-                  Número de Série
-                </label>
-                <Input
-                  id="serialNumber"
-                  placeholder="Número de série"
-                  value={maintenanceInfo.serialNumber}
-                  onChange={(e) => handleInfoChange("serialNumber", e.target.value)}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="year" className="text-sm font-medium">
-                    Ano
-                  </label>
-                  <Input
-                    id="year"
-                    placeholder="Ano"
-                    value={maintenanceInfo.year}
-                    onChange={(e) => handleInfoChange("year", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="model" className="text-sm font-medium">
-                    Modelo
-                  </label>
-                  <Input
-                    id="model"
-                    placeholder="Modelo"
-                    value={maintenanceInfo.model}
-                    onChange={(e) => handleInfoChange("model", e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="maintenanceDate" className="text-sm font-medium">
-                  Data da Manutenção
-                </label>
-                <Input
-                  id="maintenanceDate"
-                  type="month"
-                  value={maintenanceInfo.maintenanceDate}
-                  onChange={(e) => handleInfoChange("maintenanceDate", e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="mt-6 space-y-1">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Progresso</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-            <div className="mt-4 flex gap-2">
-              <Input
-                placeholder="Adicionar nova tarefa..."
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-                className="flex-1"
+              <MaintenanceActions 
+                tasks={tasks}
+                completedTasks={completedTasks}
+                maintenanceInfo={maintenanceInfo}
               />
-              <Button onClick={handleAddTask}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar
-              </Button>
             </div>
+            
+            <MaintenanceInfo 
+              maintenanceInfo={maintenanceInfo}
+              onInfoChange={handleInfoChange}
+            />
+            
+            <MaintenanceProgress progress={progress} />
+            
+            <MaintenanceTaskList
+              tasks={tasks}
+              completedTasks={completedTasks}
+              onAddTask={handleAddTask}
+              onToggleTask={handleToggleTask}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleEditTask}
+              onReorderTasks={handleReorderTasks}
+            />
           </CardHeader>
-          <CardContent className="space-y-4">
-            {tasks.map((task, index) => (
-              <div
-                key={task}
-                draggable
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
-              >
-                <TaskItem
-                  task={task}
-                  isCompleted={completedTasks.includes(task)}
-                  onToggle={(completed) => handleToggleTask(task, completed)}
-                  onDelete={() => handleDeleteTask(task)}
-                  onEdit={(newText) => handleEditTask(task, newText)}
-                />
-              </div>
-            ))}
-          </CardContent>
         </Card>
       </div>
     </div>
