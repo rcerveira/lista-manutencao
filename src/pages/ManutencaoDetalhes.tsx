@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TaskItem } from "@/components/TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +8,9 @@ import { Plus, ArrowLeft, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { MaintenanceListModal } from "@/components/MaintenanceListModal";
 import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { MaintenanceTask } from "@/types/maintenance";
 
 const initialTasks = [
   "Desmontagem e Jateamento",
@@ -55,6 +57,8 @@ interface MaintenanceInfo {
 
 export default function ManutencaoDetalhes() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const queryClient = useQueryClient();
   const [tasks, setTasks] = useState(initialTasks);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [newTask, setNewTask] = useState("");
@@ -67,15 +71,170 @@ export default function ManutencaoDetalhes() {
   });
   const { toast } = useToast();
 
+  const { data: maintenance } = useQuery({
+    queryKey: ['maintenance', id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data: maintenance, error } = await supabase
+        .from('maintenances')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        toast({
+          title: "Erro ao carregar manutenção",
+          description: error.message,
+        });
+        throw error;
+      }
+
+      setMaintenanceInfo({
+        clientName: maintenance.client_name,
+        serialNumber: maintenance.serial_number,
+        year: maintenance.year,
+        model: maintenance.model,
+        maintenanceDate: maintenance.maintenance_date,
+      });
+
+      return maintenance;
+    },
+    enabled: !!id,
+  });
+
+  const { data: maintenanceTasks } = useQuery({
+    queryKey: ['maintenance_tasks', id],
+    queryFn: async () => {
+      if (!id) return [];
+
+      const { data, error } = await supabase
+        .from('maintenance_tasks')
+        .select('*')
+        .eq('maintenance_id', id)
+        .order('order_index');
+
+      if (error) {
+        toast({
+          title: "Erro ao carregar tarefas",
+          description: error.message,
+        });
+        throw error;
+      }
+
+      return data as MaintenanceTask[];
+    },
+    enabled: !!id,
+  });
+
   useEffect(() => {
-    const sortedTasks = [...tasks].sort((a, b) => {
-      const aCompleted = completedTasks.includes(a);
-      const bCompleted = completedTasks.includes(b);
-      if (aCompleted === bCompleted) return 0;
-      return aCompleted ? 1 : -1;
-    });
-    setTasks(sortedTasks);
-  }, [completedTasks]);
+    if (maintenanceTasks) {
+      setTasks(maintenanceTasks.map(task => task.description));
+      setCompletedTasks(maintenanceTasks.filter(task => task.completed).map(task => task.description));
+    }
+  }, [maintenanceTasks]);
+
+  const createMaintenanceMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase
+        .from('maintenances')
+        .insert([
+          {
+            client_name: maintenanceInfo.clientName,
+            serial_number: maintenanceInfo.serialNumber,
+            year: maintenanceInfo.year,
+            model: maintenanceInfo.model,
+            maintenance_date: maintenanceInfo.maintenanceDate,
+            progress: (completedTasks.length / tasks.length) * 100,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: async (data) => {
+      const taskInserts = tasks.map((task, index) => ({
+        maintenance_id: data.id,
+        description: task,
+        completed: completedTasks.includes(task),
+        order_index: index,
+      }));
+
+      await supabase.from('maintenance_tasks').insert(taskInserts);
+      
+      navigate(`/manutencao/${data.id}`);
+      toast({
+        title: "Manutenção criada",
+        description: "Nova manutenção foi criada com sucesso.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao criar manutenção",
+        description: "Ocorreu um erro ao criar a manutenção.",
+      });
+    },
+  });
+
+  const updateMaintenanceMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error("ID não encontrado");
+
+      const { error } = await supabase
+        .from('maintenances')
+        .update({
+          client_name: maintenanceInfo.clientName,
+          serial_number: maintenanceInfo.serialNumber,
+          year: maintenanceInfo.year,
+          model: maintenanceInfo.model,
+          maintenance_date: maintenanceInfo.maintenanceDate,
+          progress: (completedTasks.length / tasks.length) * 100,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance', id] });
+      toast({
+        title: "Manutenção atualizada",
+        description: "As alterações foram salvas com sucesso.",
+      });
+    },
+  });
+
+  const updateTasksMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error("ID não encontrado");
+
+      await supabase
+        .from('maintenance_tasks')
+        .delete()
+        .eq('maintenance_id', id);
+
+      const taskInserts = tasks.map((task, index) => ({
+        maintenance_id: id,
+        description: task,
+        completed: completedTasks.includes(task),
+        order_index: index,
+      }));
+
+      const { error } = await supabase
+        .from('maintenance_tasks')
+        .insert(taskInserts);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance_tasks', id] });
+      toast({
+        title: "Tarefas atualizadas",
+        description: "As tarefas foram atualizadas com sucesso.",
+      });
+    },
+  });
 
   const handleToggleTask = (task: string, completed: boolean) => {
     setCompletedTasks((prev) =>
@@ -83,12 +242,22 @@ export default function ManutencaoDetalhes() {
         ? [...prev, task]
         : prev.filter((t) => t !== task)
     );
+    
+    if (id) {
+      updateTasksMutation.mutate();
+      updateMaintenanceMutation.mutate();
+    }
   };
 
   const handleAddTask = () => {
     if (newTask.trim()) {
       setTasks((prev) => [...prev, newTask.trim()]);
       setNewTask("");
+      
+      if (id) {
+        updateTasksMutation.mutate();
+      }
+      
       toast({
         title: "Tarefa adicionada",
         description: "Nova tarefa foi adicionada com sucesso.",
@@ -99,6 +268,12 @@ export default function ManutencaoDetalhes() {
   const handleDeleteTask = (taskToDelete: string) => {
     setTasks((prev) => prev.filter((task) => task !== taskToDelete));
     setCompletedTasks((prev) => prev.filter((task) => task !== taskToDelete));
+    
+    if (id) {
+      updateTasksMutation.mutate();
+      updateMaintenanceMutation.mutate();
+    }
+    
     toast({
       title: "Tarefa removida",
       description: "A tarefa foi removida com sucesso.",
@@ -114,6 +289,11 @@ export default function ManutencaoDetalhes() {
         prev.map((task) => (task === oldTask ? newText : task))
       );
     }
+    
+    if (id) {
+      updateTasksMutation.mutate();
+    }
+    
     toast({
       title: "Tarefa atualizada",
       description: "A tarefa foi atualizada com sucesso.",
@@ -125,6 +305,10 @@ export default function ManutencaoDetalhes() {
       ...prev,
       [field]: value
     }));
+    
+    if (id) {
+      updateMaintenanceMutation.mutate();
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -144,6 +328,10 @@ export default function ManutencaoDetalhes() {
     const [draggedTask] = newTasks.splice(dragIndex, 1);
     newTasks.splice(dropIndex, 0, draggedTask);
     setTasks(newTasks);
+    
+    if (id) {
+      updateTasksMutation.mutate();
+    }
     
     toast({
       title: "Tarefa movida",
