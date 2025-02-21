@@ -9,7 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      maintenance_tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string
+          id: string
+          maintenance_id: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description: string
+          id?: string
+          maintenance_id: string
+          order_index: number
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          maintenance_id?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tasks_maintenance_id_fkey"
+            columns: ["maintenance_id"]
+            isOneToOne: false
+            referencedRelation: "maintenances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenances: {
+        Row: {
+          client_name: string
+          created_at: string
+          id: string
+          maintenance_date: string
+          model: string
+          progress: number
+          serial_number: string
+          status: Database["public"]["Enums"]["maintenance_status"]
+          updated_at: string
+          year: string
+        }
+        Insert: {
+          client_name: string
+          created_at?: string
+          id?: string
+          maintenance_date: string
+          model: string
+          progress?: number
+          serial_number: string
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          updated_at?: string
+          year: string
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          id?: string
+          maintenance_date?: string
+          model?: string
+          progress?: number
+          serial_number?: string
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          updated_at?: string
+          year?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +94,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      maintenance_status: "in_progress" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never

@@ -6,39 +6,31 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight, CheckCircle2, Circle, ListTodo, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-
-interface MaintenanceRecord {
-  id: string;
-  clientName: string;
-  serialNumber: string;
-  model: string;
-  year: string;
-  progress: number;
-}
-
-const mockMaintenanceRecords: MaintenanceRecord[] = [
-  {
-    id: "1",
-    clientName: "Cliente Exemplo 1",
-    serialNumber: "SN001",
-    model: "Modelo A",
-    year: "2023",
-    progress: 75,
-  },
-  {
-    id: "2",
-    clientName: "Cliente Exemplo 2",
-    serialNumber: "SN002",
-    model: "Modelo B",
-    year: "2022",
-    progress: 30,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Maintenance } from "@/types/maintenance";
+import { toast } from "sonner";
 
 export default function Index() {
   const navigate = useNavigate();
-  const [maintenanceRecords] = useState<MaintenanceRecord[]>(mockMaintenanceRecords);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: maintenances, isLoading } = useQuery({
+    queryKey: ['maintenances'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('maintenances')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast.error("Erro ao carregar manutenções");
+        throw error;
+      }
+
+      return data as Maintenance[];
+    },
+  });
 
   const handleCreateNew = () => {
     navigate("/manutencao/nova");
@@ -49,17 +41,34 @@ export default function Index() {
   };
 
   // Calculate statistics
-  const totalMaintenances = maintenanceRecords.length;
-  const completedMaintenances = maintenanceRecords.filter(record => record.progress === 100).length;
-  const inProgressMaintenances = maintenanceRecords.filter(record => record.progress > 0 && record.progress < 100).length;
+  const totalMaintenances = maintenances?.length ?? 0;
+  const completedMaintenances = maintenances?.filter(record => record.status === 'completed').length ?? 0;
+  const inProgressMaintenances = maintenances?.filter(record => record.status === 'in_progress').length ?? 0;
 
   // Filter records based on search query
-  const filteredRecords = maintenanceRecords.filter(record => 
-    record.progress < 100 && // Only in progress
-    (record.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     record.serialNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredRecords = maintenances?.filter(record => 
+    record.status === 'in_progress' && // Only in progress
+    (record.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     record.serial_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
      record.model.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  ) ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 w-48 bg-muted rounded"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-32 bg-muted rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
@@ -130,9 +139,9 @@ export default function Index() {
             >
               <CardContent className="flex items-center justify-between p-6">
                 <div className="space-y-1">
-                  <h2 className="font-semibold">{record.clientName}</h2>
+                  <h2 className="font-semibold">{record.client_name}</h2>
                   <div className="text-sm text-muted-foreground space-x-4">
-                    <span>Série: {record.serialNumber}</span>
+                    <span>Série: {record.serial_number}</span>
                     <span>•</span>
                     <span>Modelo: {record.model}</span>
                     <span>•</span>
