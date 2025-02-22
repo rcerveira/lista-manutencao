@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,12 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Request } from "@/types/request";
-import { FileText, Calendar, Package2, Hash, User, MessageSquare, ArrowLeft } from "lucide-react";
+import { FileText, Calendar, Package2, Hash, User, MessageSquare, ArrowLeft, Trash2 } from "lucide-react";
 
 export default function RequestDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const queryClient = useQueryClient();
   const isNewRequest = id === 'nova';
   
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ export default function RequestDetails() {
     quantity: "",
     requester: "",
     observations: "",
-    date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+    date: new Date().toISOString().split('T')[0],
   });
 
   const { data: categories, isLoading: loadingCategories } = useQuery({
@@ -48,7 +49,7 @@ export default function RequestDetails() {
     },
   });
 
-  const { data: request, isLoading: loadingRequest } = useQuery({
+  const { data: request } = useQuery({
     queryKey: ['request', id],
     queryFn: async () => {
       if (isNewRequest) return null;
@@ -62,17 +63,30 @@ export default function RequestDetails() {
           )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         toast.error("Erro ao carregar solicitação");
         throw error;
       }
 
-      return data as Request & { item_categories: { name: string } };
+      return data;
     },
     enabled: !isNewRequest,
   });
+
+  useEffect(() => {
+    if (request) {
+      setFormData({
+        item_name: request.item_name,
+        category_id: request.category_id || "",
+        quantity: request.quantity.toString(),
+        requester: request.requester,
+        observations: request.observations || "",
+        date: request.date,
+      });
+    }
+  }, [request]);
 
   const { data: defaultStatus } = useQuery({
     queryKey: ['default-status'],
@@ -129,6 +143,25 @@ export default function RequestDetails() {
     },
   });
 
+  const deleteRequestMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('requests')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      toast.success("Solicitação excluída com sucesso");
+      navigate("/solicitacoes");
+    },
+    onError: () => {
+      toast.error("Erro ao excluir solicitação");
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -152,11 +185,17 @@ export default function RequestDetails() {
     createMutation.mutate(formData);
   };
 
+  const handleDelete = () => {
+    if (window.confirm('Tem certeza que deseja excluir esta solicitação?')) {
+      deleteRequestMutation.mutate();
+    }
+  };
+
   const handleCancel = () => {
     navigate("/solicitacoes");
   };
 
-  if (loadingCategories || loadingRequest) {
+  if (loadingCategories || !request && !isNewRequest) {
     return (
       <div className="container mx-auto p-4">
         <div className="animate-pulse space-y-4">
@@ -176,10 +215,23 @@ export default function RequestDetails() {
               <FileText className="h-6 w-6" />
               {isNewRequest ? "Nova Solicitação" : "Detalhes da Solicitação"}
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={handleCancel}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para Lista
-            </Button>
+            <div className="flex items-center gap-2">
+              {!isNewRequest && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  disabled={deleteRequestMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={handleCancel}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar para Lista
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

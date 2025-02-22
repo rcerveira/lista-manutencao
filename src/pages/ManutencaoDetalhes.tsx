@@ -8,6 +8,7 @@ import { MaintenanceTaskList } from "@/components/maintenance/MaintenanceTaskLis
 import { MaintenanceHeaderActions } from "@/components/maintenance/MaintenanceHeaderActions";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import type { MaintenanceInfo as MaintenanceInfoType } from "@/hooks/use-maintenance";
+import { useNavigate } from "react-router-dom";
 
 const initialTasks = [
   "Desmontagem e Jateamento",
@@ -46,6 +47,7 @@ const initialTasks = [
 
 export default function ManutencaoDetalhes() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const {
     isEditing,
@@ -153,6 +155,10 @@ export default function ManutencaoDetalhes() {
       title: "Tarefa movida",
       description: "A ordem das tarefas foi atualizada.",
     });
+  };
+
+  const handleCancel = () => {
+    navigate("/manutencoes");
   };
 
   const progress = (completedTasks.length / tasks.length) * 100;

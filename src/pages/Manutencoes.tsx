@@ -6,8 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ArrowRight, Plus, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Search, Calendar, Tool, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Manutencoes() {
   const navigate = useNavigate();
@@ -105,22 +107,53 @@ export default function Manutencoes() {
               onClick={() => handleViewDetails(record.id)}
             >
               <CardContent className="flex items-center justify-between p-6">
-                <div className="space-y-1 flex-1">
-                  <h2 className="font-semibold">{record.model}</h2>
-                  <div className="text-sm text-muted-foreground space-x-4">
-                    <span>Cliente: {record.client_name}</span>
-                    <span>•</span>
-                    <span>Número de Série: {record.serial_number}</span>
-                    <span>•</span>
-                    <span>Ano: {record.year}</span>
+                <div className="space-y-3 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-semibold text-lg">{record.model}</h2>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      record.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {record.status === 'completed' ? 'Concluída' : 'Em Andamento'}
+                    </span>
                   </div>
-                  <div className="text-sm text-muted-foreground mt-2">
-                    <span>Progresso: {record.progress}%</span>
-                    <div className="w-full bg-secondary h-2 rounded-full mt-1">
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Tool className="h-4 w-4" />
+                        <span>Informações do Equipamento</span>
+                      </div>
+                      <div className="text-sm space-y-1">
+                        <p>Cliente: {record.client_name}</p>
+                        <p>Número de Série: {record.serial_number}</p>
+                        <p>Ano: {record.year}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>Data da Manutenção</span>
+                      </div>
+                      <p className="text-sm">
+                        {format(new Date(record.maintenance_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Progresso: {record.progress}%</span>
+                    </div>
+                    <div className="w-full bg-secondary h-2 rounded-full">
                       <div
                         className="bg-primary h-2 rounded-full transition-all"
                         style={{ width: `${record.progress}%` }}
                       />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {record.maintenance_tasks?.filter(t => t.completed).length || 0} de {record.maintenance_tasks?.length || 0} tarefas concluídas
                     </div>
                   </div>
                 </div>
