@@ -69,7 +69,7 @@ export function MaintenanceInfo({ maintenanceInfo, onInfoChange }: MaintenanceIn
         </label>
         <Input
           id="maintenanceDate"
-          type="month"
+          type="date"
           value={maintenanceInfo.maintenanceDate}
           onChange={(e) => onInfoChange("maintenanceDate", e.target.value)}
         />
