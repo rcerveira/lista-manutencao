@@ -75,7 +75,6 @@ export function useMaintenance(id?: string) {
 
   const createMaintenanceMutation = useMutation({
     mutationFn: async () => {
-      // Ajusta a data para incluir o dia (primeiro dia do mês)
       const formattedDate = `${maintenanceInfo.maintenanceDate}-01`;
 
       const { data, error } = await supabase
@@ -97,22 +96,31 @@ export function useMaintenance(id?: string) {
       return data;
     },
     onSuccess: async (data) => {
-      if (tasks.length > 0) {
-        const taskInserts = tasks.map((task, index) => ({
-          maintenance_id: data.id,
-          description: task,
-          completed: completedTasks.includes(task),
-          order_index: index,
-        }));
+      try {
+        if (tasks.length > 0) {
+          const taskInserts = tasks.map((task, index) => ({
+            maintenance_id: data.id,
+            description: task,
+            completed: completedTasks.includes(task),
+            order_index: index,
+          }));
 
-        await supabase.from('maintenance_tasks').insert(taskInserts);
+          const { error } = await supabase.from('maintenance_tasks').insert(taskInserts);
+          if (error) throw error;
+        }
+        
+        navigate('/');
+        toast({
+          title: "Manutenção criada",
+          description: "Nova manutenção foi criada com sucesso.",
+        });
+      } catch (error) {
+        toast({
+          title: "Erro ao criar tarefas",
+          description: "Ocorreu um erro ao salvar as tarefas.",
+          variant: "destructive",
+        });
       }
-      
-      navigate('/');
-      toast({
-        title: "Manutenção criada",
-        description: "Nova manutenção foi criada com sucesso.",
-      });
     },
     onError: () => {
       toast({
@@ -127,9 +135,9 @@ export function useMaintenance(id?: string) {
     mutationFn: async () => {
       if (!id) throw new Error('ID não encontrado');
 
-      // Ajusta a data para incluir o dia (primeiro dia do mês)
       const formattedDate = `${maintenanceInfo.maintenanceDate}-01`;
 
+      // Primeiro, atualiza os dados principais da manutenção
       const { error: maintenanceError } = await supabase
         .from('maintenances')
         .update({
@@ -144,6 +152,7 @@ export function useMaintenance(id?: string) {
 
       if (maintenanceError) throw maintenanceError;
 
+      // Em seguida, deleta todas as tarefas existentes
       const { error: deleteError } = await supabase
         .from('maintenance_tasks')
         .delete()
@@ -151,17 +160,18 @@ export function useMaintenance(id?: string) {
 
       if (deleteError) throw deleteError;
 
+      // Por fim, insere as novas tarefas (se houver)
       if (tasks.length > 0) {
+        const taskInserts = tasks.map((task, index) => ({
+          maintenance_id: id,
+          description: task,
+          completed: completedTasks.includes(task),
+          order_index: index,
+        }));
+
         const { error: tasksError } = await supabase
           .from('maintenance_tasks')
-          .insert(
-            tasks.map((task, index) => ({
-              maintenance_id: id,
-              description: task,
-              completed: completedTasks.includes(task),
-              order_index: index,
-            }))
-          );
+          .insert(taskInserts);
 
         if (tasksError) throw tasksError;
       }
@@ -173,7 +183,8 @@ export function useMaintenance(id?: string) {
         description: "As alterações foram salvas com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Erro ao atualizar:', error);
       toast({
         title: "Erro ao atualizar",
         description: "Ocorreu um erro ao atualizar a manutenção.",
