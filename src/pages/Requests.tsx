@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -23,6 +22,9 @@ export default function Requests() {
           *,
           item_categories (
             name
+          ),
+          request_status_types (
+            label
           )
         `)
         .order('created_at', { ascending: false });
@@ -32,7 +34,10 @@ export default function Requests() {
         throw error;
       }
 
-      return data as (Request & { item_categories: { name: string } })[];
+      return data as (Request & { 
+        item_categories: { name: string },
+        request_status_types: { label: string }
+      })[];
     },
   });
 
@@ -107,15 +112,7 @@ export default function Requests() {
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div className="text-sm font-medium">
-                      {record.status === 'em_estoque'
-                        ? 'Em Estoque'
-                        : record.status === 'compra_solicitada'
-                        ? 'Compra Solicitada'
-                        : record.status === 'necessario_fazer_compra'
-                        ? 'Necessário Comprar'
-                        : record.status === 'compra_negada'
-                        ? 'Compra Negada'
-                        : 'Solicitado'}
+                      {record.request_status_types.label}
                     </div>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />

@@ -107,6 +107,33 @@ export type Database = {
         }
         Relationships: []
       }
+      request_status_types: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          label: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          id?: string
+          label: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          label?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       requests: {
         Row: {
           category_id: string | null
@@ -117,7 +144,7 @@ export type Database = {
           observations: string | null
           quantity: number
           requester: string
-          status: Database["public"]["Enums"]["request_status"]
+          status: string
           updated_at: string
         }
         Insert: {
@@ -129,7 +156,7 @@ export type Database = {
           observations?: string | null
           quantity: number
           requester: string
-          status?: Database["public"]["Enums"]["request_status"]
+          status: string
           updated_at?: string
         }
         Update: {
@@ -141,10 +168,17 @@ export type Database = {
           observations?: string | null
           quantity?: number
           requester?: string
-          status?: Database["public"]["Enums"]["request_status"]
+          status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_status"
+            columns: ["status"]
+            isOneToOne: false
+            referencedRelation: "request_status_types"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "requests_category_id_fkey"
             columns: ["category_id"]

@@ -1,10 +1,12 @@
 
-export type RequestStatus = 
-  | 'em_estoque'
-  | 'compra_solicitada'
-  | 'necessario_fazer_compra'
-  | 'compra_negada'
-  | 'solicitado';
+export interface RequestStatusType {
+  id: string;
+  name: string;
+  label: string;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Request {
   id: string;
@@ -12,7 +14,7 @@ export interface Request {
   item_name: string;
   category_id: string;
   quantity: number;
-  status: RequestStatus;
+  status: string;
   requester: string;
   observations?: string;
   created_at: string;
