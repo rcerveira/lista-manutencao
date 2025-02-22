@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -49,6 +48,12 @@ export default function Manutencoes() {
 
   const handleBackToHome = () => {
     navigate("/");
+  };
+
+  const getProgressBarColor = (progress: number) => {
+    if (progress < 30) return "bg-red-500";
+    if (progress < 70) return "bg-yellow-500";
+    return "bg-green-500";
   };
 
   if (isLoading) {
@@ -170,7 +175,7 @@ export default function Manutencoes() {
                       <div className="pl-6 space-y-2">
                         <div className="w-full bg-secondary h-2 rounded-full">
                           <div
-                            className="bg-primary h-2 rounded-full transition-all"
+                            className={`h-2 rounded-full transition-all ${getProgressBarColor(record.progress)}`}
                             style={{ width: `${record.progress}%` }}
                           />
                         </div>
