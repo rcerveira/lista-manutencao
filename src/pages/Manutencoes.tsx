@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ArrowRight, Plus, Search, Calendar, Tool, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Search, Calendar, Wrench, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -120,7 +120,7 @@ export default function Manutencoes() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Tool className="h-4 w-4" />
+                        <Wrench className="h-4 w-4" />
                         <span>Informações do Equipamento</span>
                       </div>
                       <div className="text-sm space-y-1">
