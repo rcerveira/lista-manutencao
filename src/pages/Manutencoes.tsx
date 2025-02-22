@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, ArrowRight, Plus, Search, Calendar, Wrench, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function Manutencoes() {
@@ -65,6 +65,15 @@ export default function Manutencoes() {
       </div>
     );
   }
+
+  const formatMaintenanceDate = (dateString: string) => {
+    try {
+      return format(parseISO(dateString), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Data inválida';
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -149,7 +158,7 @@ export default function Manutencoes() {
                         <span>Data da Manutenção</span>
                       </div>
                       <p className="text-sm pl-6">
-                        {format(new Date(record.maintenance_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        {formatMaintenanceDate(record.maintenance_date)}
                       </p>
                     </div>
 
