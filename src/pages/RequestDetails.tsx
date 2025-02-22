@@ -119,17 +119,19 @@ export default function RequestDetails() {
   const createRequestMutation = useMutation({
     mutationFn: async () => {
       if (!isNewRequest) return null;
+      if (!defaultStatus) throw new Error("Status padrão não encontrado");
 
       const { error } = await supabase
         .from('requests')
-        .insert([{
+        .insert({
           item_name: formData.item_name,
           category_id: formData.category_id,
           quantity: parseInt(formData.quantity),
           requester: formData.requester,
           observations: formData.observations,
           date: formData.date,
-        }]);
+          status: defaultStatus.id
+        });
 
       if (error) throw error;
     },
@@ -215,6 +217,10 @@ export default function RequestDetails() {
     }
 
     if (isNewRequest) {
+      if (!defaultStatus) {
+        toast.error("Erro: Status padrão não encontrado");
+        return;
+      }
       createRequestMutation.mutate();
     } else {
       updateRequestMutation.mutate();
