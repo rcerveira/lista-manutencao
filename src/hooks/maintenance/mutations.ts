@@ -8,8 +8,7 @@ export const createMaintenance = async (
   tasks: string[],
   completedTasks: string[]
 ) => {
-  const formattedDate = maintenanceInfo.maintenanceDate.split('-').slice(0, 2).join('-') + '-01';
-
+  // Não precisamos mais formatar a data para o primeiro dia do mês
   const { data, error } = await supabase
     .from('maintenances')
     .insert([
@@ -18,7 +17,7 @@ export const createMaintenance = async (
         serial_number: maintenanceInfo.serialNumber,
         year: maintenanceInfo.year,
         model: maintenanceInfo.model,
-        maintenance_date: formattedDate,
+        maintenance_date: maintenanceInfo.maintenanceDate,
         progress: tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0,
       },
     ])
@@ -51,8 +50,7 @@ export const updateMaintenance = async (
   tasks: string[],
   completedTasks: string[]
 ) => {
-  const formattedDate = maintenanceInfo.maintenanceDate.split('-').slice(0, 2).join('-') + '-01';
-
+  // Não precisamos mais formatar a data para o primeiro dia do mês
   const { error: maintenanceError } = await supabase
     .from('maintenances')
     .update({
@@ -60,7 +58,7 @@ export const updateMaintenance = async (
       serial_number: maintenanceInfo.serialNumber,
       year: maintenanceInfo.year,
       model: maintenanceInfo.model,
-      maintenance_date: formattedDate,
+      maintenance_date: maintenanceInfo.maintenanceDate,
       progress: tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0,
     })
     .eq('id', id);
