@@ -73,6 +73,13 @@ export function useMaintenance(id?: string) {
     }
   }, [maintenanceData, isEditing]);
 
+  // Efeito para auto-salvar quando as tarefas são modificadas
+  useEffect(() => {
+    if (isEditing && maintenanceData?.maintenance) {
+      updateMaintenanceMutation.mutate();
+    }
+  }, [tasks, completedTasks]);
+
   const createMaintenanceMutation = useMutation({
     mutationFn: async () => {
       const formattedDate = maintenanceInfo.maintenanceDate.split('-').slice(0, 2).join('-') + '-01';
@@ -174,17 +181,16 @@ export function useMaintenance(id?: string) {
       }
     },
     onSuccess: () => {
-      refetch(); // Recarrega os dados após a atualização
       toast({
-        title: "Manutenção atualizada",
-        description: "As alterações foram salvas com sucesso.",
+        title: "Alterações salvas",
+        description: "As alterações foram salvas automaticamente.",
       });
     },
     onError: (error) => {
       console.error('Erro ao atualizar:', error);
       toast({
-        title: "Erro ao atualizar",
-        description: "Ocorreu um erro ao atualizar a manutenção.",
+        title: "Erro ao salvar alterações",
+        description: "Ocorreu um erro ao salvar as alterações.",
         variant: "destructive",
       });
     },
