@@ -3,7 +3,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ListChecks } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, ListChecks, Plus, X } from "lucide-react";
+import { toast } from "sonner";
 import { RequestStatus } from "@/types/request";
 
 const STATUS_LABELS: Record<RequestStatus, string> = {
@@ -24,10 +26,29 @@ const STATUS_COLORS: Record<RequestStatus, string> = {
 
 export default function RequestStatuses() {
   const navigate = useNavigate();
+  const [newStatus, setNewStatus] = useState("");
   const statuses = Object.entries(STATUS_LABELS) as [RequestStatus, string][];
 
   const handleBack = () => {
     navigate("/solicitacoes");
+  };
+
+  const handleCreateStatus = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStatus.trim()) {
+      toast.error("Digite o nome do status");
+      return;
+    }
+    // Since this is an enum in the database, we should show a message explaining
+    // that adding new statuses requires database changes
+    toast.error("Não é possível adicionar novos status no momento. Entre em contato com o administrador do sistema.");
+    setNewStatus("");
+  };
+
+  const handleDeleteStatus = (status: RequestStatus) => {
+    // Since this is an enum in the database, we should show a message explaining
+    // that removing statuses requires database changes
+    toast.error("Não é possível remover status no momento. Entre em contato com o administrador do sistema.");
   };
 
   return (
@@ -46,6 +67,19 @@ export default function RequestStatuses() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          <form onSubmit={handleCreateStatus} className="flex gap-2">
+            <Input
+              placeholder="Nome do novo status..."
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="submit">
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar
+            </Button>
+          </form>
+
           <div className="grid gap-3">
             {statuses.map(([status, label]) => (
               <div
@@ -57,6 +91,13 @@ export default function RequestStatuses() {
                     {label}
                   </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteStatus(status)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>
