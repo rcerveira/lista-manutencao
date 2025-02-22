@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -6,16 +7,20 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { ChevronDown, ChevronUp, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function MobileMenu() {
   const navigate = useNavigate();
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
-  const menuItems = [
+  const mainMenuItems = [
     { name: "Início", path: "/" },
     { name: "Manutenções", path: "/manutencoes" },
     { name: "Solicitações", path: "/solicitacoes" },
+  ];
+
+  const submenuItems = [
     { name: "Categorias", path: "/categorias" },
     { name: "Status", path: "/status" },
   ];
@@ -29,7 +34,7 @@ export function MobileMenu() {
       </SheetTrigger>
       <SheetContent side="left" className="w-[240px] sm:w-[280px]">
         <nav className="flex flex-col gap-4 mt-8">
-          {menuItems.map((item) => (
+          {mainMenuItems.map((item) => (
             <SheetClose key={item.path} asChild>
               <Button
                 variant="ghost"
@@ -40,6 +45,35 @@ export function MobileMenu() {
               </Button>
             </SheetClose>
           ))}
+          <div className="border-l-2 border-muted ml-2 pl-2">
+            <Button
+              variant="ghost"
+              className="justify-between w-full"
+              onClick={() => setIsSubmenuOpen(!isSubmenuOpen)}
+            >
+              Configurações
+              {isSubmenuOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+            {isSubmenuOpen && (
+              <div className="ml-4 space-y-1">
+                {submenuItems.map((item) => (
+                  <SheetClose key={item.path} asChild>
+                    <Button
+                      variant="ghost"
+                      className="justify-start w-full text-sm"
+                      onClick={() => navigate(item.path)}
+                    >
+                      {item.name}
+                    </Button>
+                  </SheetClose>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
       </SheetContent>
     </Sheet>
