@@ -7,7 +7,7 @@ export function MaintenanceHeader() {
   const navigate = useNavigate();
   
   return (
-    <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
+    <Button variant="ghost" onClick={() => navigate("/manutencoes")} className="mb-4">
       <ArrowLeft className="h-4 w-4 mr-2" />
       Voltar
     </Button>

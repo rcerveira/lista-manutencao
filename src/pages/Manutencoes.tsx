@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -108,7 +109,7 @@ export default function Manutencoes() {
               <CardContent className="flex items-center justify-between p-6">
                 <div className="space-y-3 flex-1">
                   <div className="flex items-center gap-2">
-                    <h2 className="font-semibold text-lg">{record.model}</h2>
+                    <h2 className="font-semibold text-lg">{record.client_name}</h2>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -118,7 +119,7 @@ export default function Manutencoes() {
                         <span>Informações do Equipamento</span>
                       </div>
                       <div className="text-sm space-y-1">
-                        <p>Cliente: {record.client_name}</p>
+                        <p>Modelo: {record.model}</p>
                         <p>Número de Série: {record.serial_number}</p>
                         <p>Ano: {record.year}</p>
                       </div>
