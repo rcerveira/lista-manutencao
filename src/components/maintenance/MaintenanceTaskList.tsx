@@ -50,7 +50,7 @@ export function MaintenanceTaskList({
 
   return (
     <>
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-col sm:flex-row gap-2">
         <Input
           placeholder="Adicionar nova tarefa..."
           value={newTask}
@@ -58,7 +58,10 @@ export function MaintenanceTaskList({
           onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
           className="flex-1"
         />
-        <Button onClick={handleAddTask}>
+        <Button 
+          onClick={handleAddTask}
+          className="w-full sm:w-auto"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Adicionar
         </Button>
