@@ -88,6 +88,61 @@ export default function RequestDetails() {
     }
   }, [request]);
 
+  const updateRequestMutation = useMutation({
+    mutationFn: async () => {
+      if (isNewRequest) return null;
+
+      const { error } = await supabase
+        .from('requests')
+        .update({
+          item_name: formData.item_name,
+          category_id: formData.category_id,
+          quantity: parseInt(formData.quantity),
+          requester: formData.requester,
+          observations: formData.observations,
+          date: formData.date,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      toast.success("Solicitação atualizada com sucesso");
+      navigate("/solicitacoes");
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar solicitação");
+    },
+  });
+
+  const createRequestMutation = useMutation({
+    mutationFn: async () => {
+      if (!isNewRequest) return null;
+
+      const { error } = await supabase
+        .from('requests')
+        .insert([{
+          item_name: formData.item_name,
+          category_id: formData.category_id,
+          quantity: parseInt(formData.quantity),
+          requester: formData.requester,
+          observations: formData.observations,
+          date: formData.date,
+        }]);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      toast.success("Solicitação criada com sucesso");
+      navigate("/solicitacoes");
+    },
+    onError: () => {
+      toast.error("Erro ao criar solicitação");
+    },
+  });
+
   const { data: defaultStatus } = useQuery({
     queryKey: ['default-status'],
     queryFn: async () => {
@@ -117,29 +172,6 @@ export default function RequestDetails() {
       }
 
       return data;
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      if (!defaultStatus) throw new Error("Status padrão não encontrado");
-
-      const { error } = await supabase
-        .from('requests')
-        .insert([{
-          ...data,
-          quantity: parseInt(data.quantity),
-          status: defaultStatus.id
-        }]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Solicitação criada com sucesso");
-      navigate("/solicitacoes");
-    },
-    onError: () => {
-      toast.error("Erro ao criar solicitação");
     },
   });
 
@@ -182,7 +214,11 @@ export default function RequestDetails() {
       return;
     }
 
-    createMutation.mutate(formData);
+    if (isNewRequest) {
+      createRequestMutation.mutate();
+    } else {
+      updateRequestMutation.mutate();
+    }
   };
 
   const handleDelete = () => {
@@ -321,7 +357,7 @@ export default function RequestDetails() {
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button type="submit" disabled={createRequestMutation.isPending}>
                 {isNewRequest ? "Criar Solicitação" : "Salvar Alterações"}
               </Button>
             </div>

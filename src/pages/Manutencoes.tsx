@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -110,11 +109,6 @@ export default function Manutencoes() {
                 <div className="space-y-3 flex-1">
                   <div className="flex items-center gap-2">
                     <h2 className="font-semibold text-lg">{record.model}</h2>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      record.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {record.status === 'completed' ? 'Concluída' : 'Em Andamento'}
-                    </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

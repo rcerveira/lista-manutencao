@@ -19,7 +19,7 @@ export const createMaintenance = async (
         year: maintenanceInfo.year,
         model: maintenanceInfo.model,
         maintenance_date: formattedDate,
-        progress: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
+        progress: tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0,
       },
     ])
     .select()
@@ -61,7 +61,7 @@ export const updateMaintenance = async (
       year: maintenanceInfo.year,
       model: maintenanceInfo.model,
       maintenance_date: formattedDate,
-      progress: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
+      progress: tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0,
     })
     .eq('id', id);
 
