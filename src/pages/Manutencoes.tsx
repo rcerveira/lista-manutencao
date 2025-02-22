@@ -114,53 +114,64 @@ export default function Manutencoes() {
               className="hover:bg-accent/50 transition-colors cursor-pointer"
               onClick={() => handleViewDetails(record.id)}
             >
-              <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6">
-                <div className="space-y-3 flex-1 w-full">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-semibold text-lg">{record.client_name}</h2>
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-semibold text-lg line-clamp-1">{record.client_name}</h2>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="space-y-2">
                       <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Wrench className="h-4 w-4" />
+                        <Wrench className="h-4 w-4 shrink-0" />
                         <span>Informações do Equipamento</span>
                       </div>
-                      <div className="text-sm space-y-1">
-                        <p>Modelo: {record.model}</p>
-                        <p>Número de Série: {record.serial_number}</p>
-                        <p>Ano: {record.year}</p>
+                      <div className="text-sm space-y-1 pl-6">
+                        <p className="flex justify-between">
+                          <span className="text-muted-foreground">Modelo:</span>
+                          <span>{record.model}</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-muted-foreground">Número de Série:</span>
+                          <span>{record.serial_number}</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-muted-foreground">Ano:</span>
+                          <span>{record.year}</span>
+                        </p>
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
+                        <Calendar className="h-4 w-4 shrink-0" />
                         <span>Data da Manutenção</span>
                       </div>
-                      <p className="text-sm">
+                      <p className="text-sm pl-6">
                         {format(new Date(record.maintenance_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                       </p>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="text-sm text-muted-foreground flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4" />
-                      <span>Progresso: {record.progress}%</span>
-                    </div>
-                    <div className="w-full bg-secondary h-2 rounded-full">
-                      <div
-                        className="bg-primary h-2 rounded-full transition-all"
-                        style={{ width: `${record.progress}%` }}
-                      />
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {record.maintenance_tasks?.filter(t => t.completed).length || 0} de {record.maintenance_tasks?.length || 0} tarefas concluídas
+                    <div className="space-y-2">
+                      <div className="text-sm text-muted-foreground flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                        <span>Progresso: {record.progress}%</span>
+                      </div>
+                      <div className="pl-6 space-y-2">
+                        <div className="w-full bg-secondary h-2 rounded-full">
+                          <div
+                            className="bg-primary h-2 rounded-full transition-all"
+                            style={{ width: `${record.progress}%` }}
+                          />
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {record.maintenance_tasks?.filter(t => t.completed).length || 0} de {record.maintenance_tasks?.length || 0} tarefas concluídas
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block ml-4" />
               </CardContent>
             </Card>
           ))}
