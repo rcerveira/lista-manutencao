@@ -19,16 +19,16 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <div className="relative">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b p-4">
-          <div className="container mx-auto flex items-center justify-between">
-            <MobileMenu />
-          </div>
-        </header>
-        <main className="pt-16"> {/* Add padding to account for fixed header */}
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <BrowserRouter>
+        <div className="relative">
+          <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b p-4">
+            <div className="container mx-auto flex items-center justify-between">
+              <MobileMenu />
+            </div>
+          </header>
+          <main className="pt-16">
+            <Toaster />
+            <Sonner />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/manutencoes" element={<Manutencoes />} />
@@ -41,9 +41,9 @@ const App = () => (
               <Route path="/status" element={<RequestStatuses />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </main>
-      </div>
+          </main>
+        </div>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
