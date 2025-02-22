@@ -6,14 +6,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft, ListChecks, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { RequestStatusType } from "@/types/request";
+
+const colorOptions = [
+  { label: "Cinza", value: "bg-gray-100 text-gray-700" },
+  { label: "Vermelho", value: "bg-red-100 text-red-700" },
+  { label: "Amarelo", value: "bg-yellow-100 text-yellow-700" },
+  { label: "Verde", value: "bg-green-100 text-green-700" },
+  { label: "Azul", value: "bg-blue-100 text-blue-700" },
+  { label: "Roxo", value: "bg-purple-100 text-purple-700" },
+];
 
 export default function RequestStatuses() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [newStatus, setNewStatus] = useState("");
+  const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
 
   const { data: statuses, isLoading } = useQuery({
     queryKey: ['request-statuses'],
@@ -44,6 +61,7 @@ export default function RequestStatuses() {
       queryClient.invalidateQueries({ queryKey: ['request-statuses'] });
       toast.success("Status criado com sucesso");
       setNewStatus("");
+      setSelectedColor(colorOptions[0].value);
     },
     onError: () => {
       toast.error("Erro ao criar status");
@@ -82,14 +100,13 @@ export default function RequestStatuses() {
     const statusData = {
       name: newStatus.toLowerCase().replace(/\s+/g, '_'),
       label: newStatus,
-      color: 'bg-gray-100 text-gray-700', // Default color for new statuses
+      color: selectedColor,
     };
 
     createStatusMutation.mutate(statusData);
   };
 
   const handleDeleteStatus = async (status: RequestStatusType) => {
-    // Check if the status is being used by any requests
     const { count, error } = await supabase
       .from('requests')
       .select('*', { count: 'exact', head: true })
@@ -142,6 +159,22 @@ export default function RequestStatuses() {
               onChange={(e) => setNewStatus(e.target.value)}
               className="flex-1"
             />
+            <Select value={selectedColor} onValueChange={setSelectedColor}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue>Selecione uma cor</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {colorOptions.map((color) => (
+                  <SelectItem
+                    key={color.value}
+                    value={color.value}
+                    className={color.value}
+                  >
+                    {color.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button type="submit" disabled={createStatusMutation.isPending}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar

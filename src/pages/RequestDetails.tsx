@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -82,11 +81,25 @@ export default function RequestDetails() {
         .from('request_status_types')
         .select('*')
         .eq('name', 'solicitado')
-        .single();
+        .maybeSingle();
 
       if (error) {
         toast.error("Erro ao carregar status padrão");
         throw error;
+      }
+
+      if (!data) {
+        const { data: firstStatus, error: firstStatusError } = await supabase
+          .from('request_status_types')
+          .select('*')
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (firstStatusError) throw firstStatusError;
+        if (!firstStatus) throw new Error("Nenhum status cadastrado");
+        
+        return firstStatus;
       }
 
       return data;
