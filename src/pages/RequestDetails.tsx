@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -252,28 +253,34 @@ export default function RequestDetails() {
     <div className="container mx-auto p-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-6 w-6" />
-              {isNewRequest ? "Nova Solicitação" : "Detalhes da Solicitação"}
-            </CardTitle>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                className="w-full sm:w-auto"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar para Lista
+              </Button>
               {!isNewRequest && (
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleDelete}
                   disabled={deleteRequestMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Excluir
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={handleCancel}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar para Lista
-              </Button>
             </div>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-6 w-6" />
+              {isNewRequest ? "Nova Solicitação" : "Detalhes da Solicitação"}
+            </CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -308,7 +315,7 @@ export default function RequestDetails() {
                 value={formData.category_id}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -359,11 +366,20 @@ export default function RequestDetails() {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={handleCancel}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleCancel}
+                className="w-full sm:w-auto"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createRequestMutation.isPending}>
+              <Button 
+                type="submit" 
+                disabled={createRequestMutation.isPending}
+                className="w-full sm:w-auto"
+              >
                 {isNewRequest ? "Criar Solicitação" : "Salvar Alterações"}
               </Button>
             </div>
