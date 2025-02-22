@@ -82,25 +82,23 @@ export default function Manutencoes() {
 
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleBackToHome}
-            className="w-full sm:w-auto"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-3xl font-bold">Manutenções</h1>
-        </div>
+      <h1 className="text-3xl font-bold">Manutenções</h1>
+      
+      <div className="grid grid-cols-2 gap-2">
+        <Button 
+          variant="outline" 
+          onClick={handleBackToHome}
+          className="w-full"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar
+        </Button>
         <Button 
           onClick={handleCreateNew}
-          className="w-full sm:w-auto"
+          className="w-full"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Nova Manutenção
+          Nova
         </Button>
       </div>
 
