@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, ArrowRight, Search, ListChecks } from "lucide-react";
+import { Plus, ArrowRight, Search, ListChecks, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Request, RequestStatusType } from "@/types/request";
 
@@ -107,6 +106,10 @@ export default function Requests() {
     updateStatusMutation.mutate({ requestId, statusId });
   };
 
+  const handleBackToHome = () => {
+    navigate("/");
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-4">
@@ -125,7 +128,13 @@ export default function Requests() {
   return (
     <div className="container mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Solicitações</h1>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={handleBackToHome}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+          <h1 className="text-3xl font-bold">Solicitações</h1>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleManageCategories}>
             Gerenciar Categorias
