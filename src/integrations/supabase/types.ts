@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      item_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       maintenance_tasks: {
         Row: {
           completed: boolean
@@ -86,6 +107,53 @@ export type Database = {
         }
         Relationships: []
       }
+      requests: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          date: string
+          id: string
+          item_name: string
+          observations: string | null
+          quantity: number
+          requester: string
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          date: string
+          id?: string
+          item_name: string
+          observations?: string | null
+          quantity: number
+          requester: string
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          item_name?: string
+          observations?: string | null
+          quantity?: number
+          requester?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "item_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -95,6 +163,12 @@ export type Database = {
     }
     Enums: {
       maintenance_status: "in_progress" | "completed"
+      request_status:
+        | "em_estoque"
+        | "compra_solicitada"
+        | "necessario_fazer_compra"
+        | "compra_negada"
+        | "solicitado"
     }
     CompositeTypes: {
       [_ in never]: never
