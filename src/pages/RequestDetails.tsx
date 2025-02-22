@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Request } from "@/types/request";
-import { FileText, Calendar, Package2, Hash, User, MessageSquare } from "lucide-react";
+import { FileText, Calendar, Package2, Hash, User, MessageSquare, ArrowLeft } from "lucide-react";
 
 export default function RequestDetails() {
   const navigate = useNavigate();
@@ -158,10 +158,16 @@ export default function RequestDetails() {
     <div className="container mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-6 w-6" />
-            {isNewRequest ? "Nova Solicitação" : "Detalhes da Solicitação"}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-6 w-6" />
+              {isNewRequest ? "Nova Solicitação" : "Detalhes da Solicitação"}
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={handleCancel}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para Lista
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
