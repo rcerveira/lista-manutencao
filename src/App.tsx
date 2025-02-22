@@ -12,28 +12,38 @@ import Requests from "./pages/Requests";
 import RequestDetails from "./pages/RequestDetails";
 import Categories from "./pages/Categories";
 import RequestStatuses from "./pages/RequestStatuses";
+import { MobileMenu } from "./components/MobileMenu";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/manutencoes" element={<Manutencoes />} />
-          <Route path="/manutencao/:id" element={<ManutencaoDetalhes />} />
-          <Route path="/manutencao/nova" element={<ManutencaoDetalhes />} />
-          <Route path="/solicitacoes" element={<Requests />} />
-          <Route path="/solicitacao/:id" element={<RequestDetails />} />
-          <Route path="/solicitacao/nova" element={<RequestDetails />} />
-          <Route path="/categorias" element={<Categories />} />
-          <Route path="/status" element={<RequestStatuses />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <div className="relative">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b p-4">
+          <div className="container mx-auto flex items-center justify-between">
+            <MobileMenu />
+          </div>
+        </header>
+        <main className="pt-16"> {/* Add padding to account for fixed header */}
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/manutencoes" element={<Manutencoes />} />
+              <Route path="/manutencao/:id" element={<ManutencaoDetalhes />} />
+              <Route path="/manutencao/nova" element={<ManutencaoDetalhes />} />
+              <Route path="/solicitacoes" element={<Requests />} />
+              <Route path="/solicitacao/:id" element={<RequestDetails />} />
+              <Route path="/solicitacao/nova" element={<RequestDetails />} />
+              <Route path="/categorias" element={<Categories />} />
+              <Route path="/status" element={<RequestStatuses />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </main>
+      </div>
     </TooltipProvider>
   </QueryClientProvider>
 );
