@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -127,7 +128,7 @@ export default function Requests() {
 
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={handleBackToHome}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -135,15 +136,26 @@ export default function Requests() {
           </Button>
           <h1 className="text-3xl font-bold">Solicitações</h1>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleManageCategories}>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button 
+            variant="outline" 
+            onClick={handleManageCategories}
+            className="w-full sm:w-auto"
+          >
             Gerenciar Categorias
           </Button>
-          <Button variant="outline" onClick={handleManageStatuses}>
+          <Button 
+            variant="outline" 
+            onClick={handleManageStatuses}
+            className="w-full sm:w-auto"
+          >
             <ListChecks className="h-4 w-4 mr-2" />
             Gerenciar Status
           </Button>
-          <Button onClick={handleCreateNew}>
+          <Button 
+            onClick={handleCreateNew}
+            className="w-full sm:w-auto"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Nova Solicitação
           </Button>
@@ -173,26 +185,26 @@ export default function Requests() {
               key={record.id}
               className="hover:bg-accent/50 transition-colors"
             >
-              <CardContent className="flex items-center justify-between p-6">
+              <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4">
                 <div 
-                  className="space-y-1 flex-1 cursor-pointer"
+                  className="space-y-1 flex-1 cursor-pointer w-full"
                   onClick={() => handleViewDetails(record.id)}
                 >
                   <h2 className="font-semibold">{record.item_name}</h2>
-                  <div className="text-sm text-muted-foreground space-x-4">
+                  <div className="text-sm text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <span>Categoria: {record.item_categories.name}</span>
-                    <span>•</span>
+                    <span className="hidden sm:inline">•</span>
                     <span>Quantidade: {record.quantity}</span>
-                    <span>•</span>
+                    <span className="hidden sm:inline">•</span>
                     <span>Solicitante: {record.requester}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 w-full sm:w-auto">
                   <Select
                     value={record.status}
                     onValueChange={(value) => handleUpdateStatus(record.id, value)}
                   >
-                    <SelectTrigger className={record.request_status_types.color}>
+                    <SelectTrigger className={`${record.request_status_types.color} w-full sm:w-[180px]`}>
                       <SelectValue>{record.request_status_types.label}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -207,7 +219,7 @@ export default function Requests() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
                 </div>
               </CardContent>
             </Card>
