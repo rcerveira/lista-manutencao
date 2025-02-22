@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -30,7 +29,7 @@ export function useMaintenance(id?: string) {
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [maintenanceInfo, setMaintenanceInfo] = useState<MaintenanceInfo>(initialMaintenanceInfo);
 
-  const { data: maintenanceData } = useQuery({
+  const { data: maintenanceData, refetch } = useQuery({
     queryKey: ['maintenance', id],
     queryFn: async () => {
       if (!id) return null;
@@ -93,36 +92,33 @@ export function useMaintenance(id?: string) {
         .single();
 
       if (error) throw error;
+
+      if (tasks.length > 0) {
+        const taskInserts = tasks.map((task, index) => ({
+          maintenance_id: data.id,
+          description: task,
+          completed: completedTasks.includes(task),
+          order_index: index,
+        }));
+
+        const { error: tasksError } = await supabase
+          .from('maintenance_tasks')
+          .insert(taskInserts);
+
+        if (tasksError) throw tasksError;
+      }
+
       return data;
     },
-    onSuccess: async (data) => {
-      try {
-        if (tasks.length > 0) {
-          const taskInserts = tasks.map((task, index) => ({
-            maintenance_id: data.id,
-            description: task,
-            completed: completedTasks.includes(task),
-            order_index: index,
-          }));
-
-          const { error } = await supabase.from('maintenance_tasks').insert(taskInserts);
-          if (error) throw error;
-        }
-        
-        navigate('/');
-        toast({
-          title: "Manutenção criada",
-          description: "Nova manutenção foi criada com sucesso.",
-        });
-      } catch (error) {
-        toast({
-          title: "Erro ao criar tarefas",
-          description: "Ocorreu um erro ao salvar as tarefas.",
-          variant: "destructive",
-        });
-      }
+    onSuccess: () => {
+      navigate('/');
+      toast({
+        title: "Manutenção criada",
+        description: "Nova manutenção foi criada com sucesso.",
+      });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Erro ao criar:', error);
       toast({
         title: "Erro ao criar manutenção",
         description: "Ocorreu um erro ao criar a manutenção.",
@@ -137,7 +133,7 @@ export function useMaintenance(id?: string) {
 
       const formattedDate = `${maintenanceInfo.maintenanceDate}-01`;
 
-      // Primeiro, atualiza os dados principais da manutenção
+      // Atualiza os dados principais da manutenção
       const { error: maintenanceError } = await supabase
         .from('maintenances')
         .update({
@@ -152,32 +148,33 @@ export function useMaintenance(id?: string) {
 
       if (maintenanceError) throw maintenanceError;
 
-      // Em seguida, deleta todas as tarefas existentes
-      const { error: deleteError } = await supabase
-        .from('maintenance_tasks')
-        .delete()
-        .eq('maintenance_id', id);
+      // Cria um array com todas as tarefas atualizadas
+      const taskUpdates = tasks.map((task, index) => ({
+        maintenance_id: id,
+        description: task,
+        completed: completedTasks.includes(task),
+        order_index: index,
+      }));
 
-      if (deleteError) throw deleteError;
+      if (taskUpdates.length > 0) {
+        // Remove todas as tarefas antigas
+        const { error: deleteError } = await supabase
+          .from('maintenance_tasks')
+          .delete()
+          .eq('maintenance_id', id);
 
-      // Por fim, insere as novas tarefas (se houver)
-      if (tasks.length > 0) {
-        const taskInserts = tasks.map((task, index) => ({
-          maintenance_id: id,
-          description: task,
-          completed: completedTasks.includes(task),
-          order_index: index,
-        }));
+        if (deleteError) throw deleteError;
 
+        // Insere as tarefas atualizadas
         const { error: tasksError } = await supabase
           .from('maintenance_tasks')
-          .insert(taskInserts);
+          .insert(taskUpdates);
 
         if (tasksError) throw tasksError;
       }
     },
     onSuccess: () => {
-      navigate('/');
+      refetch(); // Recarrega os dados após a atualização
       toast({
         title: "Manutenção atualizada",
         description: "As alterações foram salvas com sucesso.",
