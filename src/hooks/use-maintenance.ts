@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -66,7 +67,6 @@ export function useMaintenance(id?: string) {
         setCompletedTasks(maintenanceData.tasks.filter(t => t.completed).map(t => t.description));
       }
     } else if (!isEditing) {
-      // Reset to initial state when creating new maintenance
       setMaintenanceInfo(initialMaintenanceInfo);
       setTasks([]);
       setCompletedTasks([]);
@@ -75,6 +75,9 @@ export function useMaintenance(id?: string) {
 
   const createMaintenanceMutation = useMutation({
     mutationFn: async () => {
+      // Ajusta a data para incluir o dia (primeiro dia do mês)
+      const formattedDate = `${maintenanceInfo.maintenanceDate}-01`;
+
       const { data, error } = await supabase
         .from('maintenances')
         .insert([
@@ -83,8 +86,8 @@ export function useMaintenance(id?: string) {
             serial_number: maintenanceInfo.serialNumber,
             year: maintenanceInfo.year,
             model: maintenanceInfo.model,
-            maintenance_date: maintenanceInfo.maintenanceDate,
-            progress: (completedTasks.length / tasks.length) * 100,
+            maintenance_date: formattedDate,
+            progress: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
           },
         ])
         .select()
@@ -94,14 +97,16 @@ export function useMaintenance(id?: string) {
       return data;
     },
     onSuccess: async (data) => {
-      const taskInserts = tasks.map((task, index) => ({
-        maintenance_id: data.id,
-        description: task,
-        completed: completedTasks.includes(task),
-        order_index: index,
-      }));
+      if (tasks.length > 0) {
+        const taskInserts = tasks.map((task, index) => ({
+          maintenance_id: data.id,
+          description: task,
+          completed: completedTasks.includes(task),
+          order_index: index,
+        }));
 
-      await supabase.from('maintenance_tasks').insert(taskInserts);
+        await supabase.from('maintenance_tasks').insert(taskInserts);
+      }
       
       navigate('/');
       toast({
@@ -122,6 +127,9 @@ export function useMaintenance(id?: string) {
     mutationFn: async () => {
       if (!id) throw new Error('ID não encontrado');
 
+      // Ajusta a data para incluir o dia (primeiro dia do mês)
+      const formattedDate = `${maintenanceInfo.maintenanceDate}-01`;
+
       const { error: maintenanceError } = await supabase
         .from('maintenances')
         .update({
@@ -129,8 +137,8 @@ export function useMaintenance(id?: string) {
           serial_number: maintenanceInfo.serialNumber,
           year: maintenanceInfo.year,
           model: maintenanceInfo.model,
-          maintenance_date: maintenanceInfo.maintenanceDate,
-          progress: (completedTasks.length / tasks.length) * 100,
+          maintenance_date: formattedDate,
+          progress: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
         })
         .eq('id', id);
 
@@ -143,18 +151,20 @@ export function useMaintenance(id?: string) {
 
       if (deleteError) throw deleteError;
 
-      const { error: tasksError } = await supabase
-        .from('maintenance_tasks')
-        .insert(
-          tasks.map((task, index) => ({
-            maintenance_id: id,
-            description: task,
-            completed: completedTasks.includes(task),
-            order_index: index,
-          }))
-        );
+      if (tasks.length > 0) {
+        const { error: tasksError } = await supabase
+          .from('maintenance_tasks')
+          .insert(
+            tasks.map((task, index) => ({
+              maintenance_id: id,
+              description: task,
+              completed: completedTasks.includes(task),
+              order_index: index,
+            }))
+          );
 
-      if (tasksError) throw tasksError;
+        if (tasksError) throw tasksError;
+      }
     },
     onSuccess: () => {
       navigate('/');
