@@ -24,6 +24,7 @@ export function useMaintenance(id?: string) {
     enabled: isEditing,
   });
 
+  // Efeito para carregar os dados iniciais
   useEffect(() => {
     if (maintenanceData?.maintenance) {
       setMaintenanceInfo({
@@ -35,8 +36,9 @@ export function useMaintenance(id?: string) {
       });
 
       if (maintenanceData.tasks) {
-        setTasks(maintenanceData.tasks.map(t => t.description));
-        setCompletedTasks(maintenanceData.tasks.filter(t => t.completed).map(t => t.description));
+        const sortedTasks = [...maintenanceData.tasks].sort((a, b) => a.order_index - b.order_index);
+        setTasks(sortedTasks.map(t => t.description));
+        setCompletedTasks(sortedTasks.filter(t => t.completed).map(t => t.description));
       }
     } else if (!isEditing) {
       setMaintenanceInfo(initialMaintenanceInfo);
@@ -44,12 +46,6 @@ export function useMaintenance(id?: string) {
       setCompletedTasks([]);
     }
   }, [maintenanceData, isEditing]);
-
-  useEffect(() => {
-    if (isEditing && maintenanceData?.maintenance) {
-      updateMaintenanceMutation.mutate();
-    }
-  }, [tasks, completedTasks]);
 
   const createMaintenanceMutation = useMutation({
     mutationFn: () => createMaintenance(maintenanceInfo, tasks, completedTasks),
@@ -75,7 +71,7 @@ export function useMaintenance(id?: string) {
     onSuccess: () => {
       toast({
         title: "Alterações salvas",
-        description: "As alterações foram salvas automaticamente.",
+        description: "As alterações foram salvas com sucesso.",
       });
     },
     onError: (error) => {
