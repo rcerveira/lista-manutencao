@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { MaintenanceHeader } from "@/components/maintenance/MaintenanceHeader";
 import { MaintenanceInfo } from "@/components/maintenance/MaintenanceInfo";
 import { MaintenanceProgress } from "@/components/maintenance/MaintenanceProgress";
 import { MaintenanceTaskList } from "@/components/maintenance/MaintenanceTaskList";
-import { Printer } from "lucide-react";
+import { Printer, Trash2 } from "lucide-react";
 
 const initialTasks = [
   "Desmontagem e Jateamento",
@@ -55,6 +55,7 @@ interface MaintenanceInfo {
 }
 
 export default function ManutencaoDetalhes() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState(initialTasks);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
@@ -66,6 +67,46 @@ export default function ManutencaoDetalhes() {
     maintenanceDate: "",
   });
   const { toast } = useToast();
+  const isEditing = Boolean(id);
+
+  const { data: maintenanceData } = useQuery({
+    queryKey: ['maintenance', id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data: maintenance } = await supabase
+        .from('maintenances')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      const { data: maintenanceTasks } = await supabase
+        .from('maintenance_tasks')
+        .select('*')
+        .eq('maintenance_id', id)
+        .order('order_index');
+
+      return { maintenance, tasks: maintenanceTasks };
+    },
+    enabled: isEditing,
+  });
+
+  useEffect(() => {
+    if (maintenanceData?.maintenance) {
+      setMaintenanceInfo({
+        clientName: maintenanceData.maintenance.client_name,
+        serialNumber: maintenanceData.maintenance.serial_number,
+        year: maintenanceData.maintenance.year,
+        model: maintenanceData.maintenance.model,
+        maintenanceDate: maintenanceData.maintenance.maintenance_date,
+      });
+    }
+
+    if (maintenanceData?.tasks) {
+      setTasks(maintenanceData.tasks.map(t => t.description));
+      setCompletedTasks(maintenanceData.tasks.filter(t => t.completed).map(t => t.description));
+    }
+  }, [maintenanceData]);
 
   const createMaintenanceMutation = useMutation({
     mutationFn: async () => {
@@ -112,6 +153,87 @@ export default function ManutencaoDetalhes() {
     },
   });
 
+  const updateMaintenanceMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error('ID não encontrado');
+
+      const { error: maintenanceError } = await supabase
+        .from('maintenances')
+        .update({
+          client_name: maintenanceInfo.clientName,
+          serial_number: maintenanceInfo.serialNumber,
+          year: maintenanceInfo.year,
+          model: maintenanceInfo.model,
+          maintenance_date: maintenanceInfo.maintenanceDate,
+          progress: (completedTasks.length / tasks.length) * 100,
+        })
+        .eq('id', id);
+
+      if (maintenanceError) throw maintenanceError;
+
+      const { error: deleteError } = await supabase
+        .from('maintenance_tasks')
+        .delete()
+        .eq('maintenance_id', id);
+
+      if (deleteError) throw deleteError;
+
+      const { error: tasksError } = await supabase
+        .from('maintenance_tasks')
+        .insert(
+          tasks.map((task, index) => ({
+            maintenance_id: id,
+            description: task,
+            completed: completedTasks.includes(task),
+            order_index: index,
+          }))
+        );
+
+      if (tasksError) throw tasksError;
+    },
+    onSuccess: () => {
+      navigate('/');
+      toast({
+        title: "Manutenção atualizada",
+        description: "As alterações foram salvas com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao atualizar",
+        description: "Ocorreu um erro ao atualizar a manutenção.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMaintenanceMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error('ID não encontrado');
+
+      const { error } = await supabase
+        .from('maintenances')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      navigate('/');
+      toast({
+        title: "Manutenção excluída",
+        description: "A manutenção foi excluída com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao excluir",
+        description: "Ocorreu um erro ao excluir a manutenção.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSave = () => {
     if (
       !maintenanceInfo.clientName ||
@@ -128,7 +250,17 @@ export default function ManutencaoDetalhes() {
       return;
     }
 
-    createMaintenanceMutation.mutate();
+    if (isEditing) {
+      updateMaintenanceMutation.mutate();
+    } else {
+      createMaintenanceMutation.mutate();
+    }
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Tem certeza que deseja excluir esta manutenção?')) {
+      deleteMaintenanceMutation.mutate();
+    }
   };
 
   const handlePrintPDF = () => {
@@ -206,15 +338,30 @@ export default function ManutencaoDetalhes() {
           <CardHeader>
             <div className="flex items-center justify-between mb-4">
               <CardTitle className="text-center text-2xl font-bold">
-                Nova Manutenção
+                {isEditing ? 'Editar Manutenção' : 'Nova Manutenção'}
               </CardTitle>
               <div className="flex items-center gap-2">
+                {isEditing && (
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                    disabled={deleteMaintenanceMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {deleteMaintenanceMutation.isPending ? "Excluindo..." : "Excluir"}
+                  </Button>
+                )}
                 <Button variant="outline" onClick={handlePrintPDF}>
                   <Printer className="h-4 w-4 mr-2" />
                   Imprimir PDF
                 </Button>
-                <Button onClick={handleSave} disabled={createMaintenanceMutation.isPending}>
-                  {createMaintenanceMutation.isPending ? "Salvando..." : "Salvar"}
+                <Button 
+                  onClick={handleSave} 
+                  disabled={createMaintenanceMutation.isPending || updateMaintenanceMutation.isPending}
+                >
+                  {createMaintenanceMutation.isPending || updateMaintenanceMutation.isPending
+                    ? "Salvando..."
+                    : "Salvar"}
                 </Button>
               </div>
             </div>
