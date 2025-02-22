@@ -12,42 +12,6 @@ export interface MaintenanceInfo {
   maintenanceDate: string;
 }
 
-// Lista inicial de tarefas padrão para nova manutenção
-const defaultTasks = [
-  "Desmontagem e Jateamento",
-  "Desmontagem do queixo",
-  "Silo",
-  "Caixa vibratória (revisar)",
-  "Cambão",
-  "Patolamento",
-  "Kit Mangueiras",
-  "Passarela (reformar)",
-  "Esteira Nova + Cavaletes",
-  "Roletes carga",
-  "Redutor + Ajuste eixo rolete tração",
-  "Tremonha",
-  "Tanque (limpeza + troca visores)",
-  "Mandíbulas",
-  "Recuperar abanadeira",
-  "02 Canaletas Novas",
-  "Escada",
-  "Mola do tirante",
-  "Chapa do morto",
-  "Óleos (ccm fornece)",
-  "Embreagem + Eixo piloto",
-  "Bica",
-  "Suporte do radiador",
-  "02 Pé do silo",
-  "Mancal Revisar",
-  "Descarga (somente tubo saida)",
-  "Painel Novo",
-  "Motor + Polias Caixa Vibratória",
-  "Caixa Bateria",
-  "Usinar polia do motor",
-  "Pintura",
-  "Teste"
-];
-
 const initialMaintenanceInfo: MaintenanceInfo = {
   clientName: "",
   serialNumber: "",
@@ -61,7 +25,7 @@ export function useMaintenance(id?: string) {
   const { toast } = useToast();
   const isEditing = Boolean(id);
 
-  const [tasks, setTasks] = useState<string[]>(defaultTasks);
+  const [tasks, setTasks] = useState<string[]>([]);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [maintenanceInfo, setMaintenanceInfo] = useState<MaintenanceInfo>(initialMaintenanceInfo);
 
@@ -104,7 +68,7 @@ export function useMaintenance(id?: string) {
     } else if (!isEditing) {
       // Reset to initial state when creating new maintenance
       setMaintenanceInfo(initialMaintenanceInfo);
-      setTasks(defaultTasks);
+      setTasks([]);
       setCompletedTasks([]);
     }
   }, [maintenanceData, isEditing]);
