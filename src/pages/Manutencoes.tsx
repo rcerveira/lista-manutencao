@@ -68,15 +68,23 @@ export default function Manutencoes() {
 
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={handleBackToHome}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleBackToHome}
+            className="w-full sm:w-auto"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
           <h1 className="text-3xl font-bold">Manutenções</h1>
         </div>
-        <Button onClick={handleCreateNew}>
+        <Button 
+          onClick={handleCreateNew}
+          className="w-full sm:w-auto"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nova Manutenção
         </Button>
@@ -106,13 +114,13 @@ export default function Manutencoes() {
               className="hover:bg-accent/50 transition-colors cursor-pointer"
               onClick={() => handleViewDetails(record.id)}
             >
-              <CardContent className="flex items-center justify-between p-6">
-                <div className="space-y-3 flex-1">
+              <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6">
+                <div className="space-y-3 flex-1 w-full">
                   <div className="flex items-center gap-2">
                     <h2 className="font-semibold text-lg">{record.client_name}</h2>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <div className="text-sm text-muted-foreground flex items-center gap-2">
                         <Wrench className="h-4 w-4" />
@@ -152,7 +160,7 @@ export default function Manutencoes() {
                     </div>
                   </div>
                 </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block ml-4" />
               </CardContent>
             </Card>
           ))}
