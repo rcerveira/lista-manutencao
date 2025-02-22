@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -74,7 +75,7 @@ export function useMaintenance(id?: string) {
 
   const createMaintenanceMutation = useMutation({
     mutationFn: async () => {
-      const formattedDate = `${maintenanceInfo.maintenanceDate}-01`;
+      const formattedDate = maintenanceInfo.maintenanceDate.split('-').slice(0, 2).join('-') + '-01';
 
       const { data, error } = await supabase
         .from('maintenances')
@@ -131,7 +132,7 @@ export function useMaintenance(id?: string) {
     mutationFn: async () => {
       if (!id) throw new Error('ID não encontrado');
 
-      const formattedDate = `${maintenanceInfo.maintenanceDate}-01`;
+      const formattedDate = maintenanceInfo.maintenanceDate.split('-').slice(0, 2).join('-') + '-01';
 
       // Atualiza os dados principais da manutenção
       const { error: maintenanceError } = await supabase
@@ -148,27 +149,26 @@ export function useMaintenance(id?: string) {
 
       if (maintenanceError) throw maintenanceError;
 
-      // Cria um array com todas as tarefas atualizadas
-      const taskUpdates = tasks.map((task, index) => ({
-        maintenance_id: id,
-        description: task,
-        completed: completedTasks.includes(task),
-        order_index: index,
-      }));
+      // Remove todas as tarefas antigas
+      const { error: deleteError } = await supabase
+        .from('maintenance_tasks')
+        .delete()
+        .eq('maintenance_id', id);
 
-      if (taskUpdates.length > 0) {
-        // Remove todas as tarefas antigas
-        const { error: deleteError } = await supabase
-          .from('maintenance_tasks')
-          .delete()
-          .eq('maintenance_id', id);
+      if (deleteError) throw deleteError;
 
-        if (deleteError) throw deleteError;
+      // Insere todas as tarefas atualizadas
+      if (tasks.length > 0) {
+        const taskInserts = tasks.map((task, index) => ({
+          maintenance_id: id,
+          description: task,
+          completed: completedTasks.includes(task),
+          order_index: index,
+        }));
 
-        // Insere as tarefas atualizadas
         const { error: tasksError } = await supabase
           .from('maintenance_tasks')
-          .insert(taskUpdates);
+          .insert(taskInserts);
 
         if (tasksError) throw tasksError;
       }
