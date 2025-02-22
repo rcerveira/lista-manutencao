@@ -322,6 +322,27 @@ export default function ManutencaoDetalhes() {
 
   const progress = (completedTasks.length / tasks.length) * 100;
 
+  const isNewMaintenance = !id;
+
+  const handleSave = () => {
+    if (
+      !maintenanceInfo.clientName ||
+      !maintenanceInfo.serialNumber ||
+      !maintenanceInfo.year ||
+      !maintenanceInfo.model ||
+      !maintenanceInfo.maintenanceDate
+    ) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createMaintenanceMutation.mutate();
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="mx-auto max-w-4xl">
@@ -331,13 +352,21 @@ export default function ManutencaoDetalhes() {
           <CardHeader>
             <div className="flex items-center justify-between mb-4">
               <CardTitle className="text-center text-2xl font-bold">
-                Lista de Manutenção
+                {isNewMaintenance ? "Nova Manutenção" : "Lista de Manutenção"}
               </CardTitle>
-              <MaintenanceActions 
-                tasks={tasks}
-                completedTasks={completedTasks}
-                maintenanceInfo={maintenanceInfo}
-              />
+              <div className="flex items-center gap-2">
+                {isNewMaintenance ? (
+                  <Button onClick={handleSave} disabled={createMaintenanceMutation.isPending}>
+                    {createMaintenanceMutation.isPending ? "Salvando..." : "Salvar"}
+                  </Button>
+                ) : (
+                  <MaintenanceActions 
+                    tasks={tasks}
+                    completedTasks={completedTasks}
+                    maintenanceInfo={maintenanceInfo}
+                  />
+                )}
+              </div>
             </div>
             
             <MaintenanceInfo 
