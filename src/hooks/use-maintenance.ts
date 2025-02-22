@@ -2,24 +2,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { MaintenanceInfo, initialMaintenanceInfo } from "./maintenance/types";
+import { createMaintenance, updateMaintenance, deleteMaintenance } from "./maintenance/mutations";
+import { fetchMaintenance } from "./maintenance/queries";
 
-export interface MaintenanceInfo {
-  clientName: string;
-  serialNumber: string;
-  year: string;
-  model: string;
-  maintenanceDate: string;
-}
-
-const initialMaintenanceInfo: MaintenanceInfo = {
-  clientName: "",
-  serialNumber: "",
-  year: "",
-  model: "",
-  maintenanceDate: "",
-};
+export type { MaintenanceInfo };
 
 export function useMaintenance(id?: string) {
   const navigate = useNavigate();
@@ -30,25 +18,9 @@ export function useMaintenance(id?: string) {
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [maintenanceInfo, setMaintenanceInfo] = useState<MaintenanceInfo>(initialMaintenanceInfo);
 
-  const { data: maintenanceData, refetch } = useQuery({
+  const { data: maintenanceData } = useQuery({
     queryKey: ['maintenance', id],
-    queryFn: async () => {
-      if (!id) return null;
-      
-      const { data: maintenance } = await supabase
-        .from('maintenances')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-
-      const { data: maintenanceTasks } = await supabase
-        .from('maintenance_tasks')
-        .select('*')
-        .eq('maintenance_id', id)
-        .order('order_index');
-
-      return { maintenance, tasks: maintenanceTasks };
-    },
+    queryFn: () => fetchMaintenance(id!),
     enabled: isEditing,
   });
 
@@ -73,7 +45,6 @@ export function useMaintenance(id?: string) {
     }
   }, [maintenanceData, isEditing]);
 
-  // Efeito para auto-salvar quando as tarefas são modificadas
   useEffect(() => {
     if (isEditing && maintenanceData?.maintenance) {
       updateMaintenanceMutation.mutate();
@@ -81,43 +52,7 @@ export function useMaintenance(id?: string) {
   }, [tasks, completedTasks]);
 
   const createMaintenanceMutation = useMutation({
-    mutationFn: async () => {
-      const formattedDate = maintenanceInfo.maintenanceDate.split('-').slice(0, 2).join('-') + '-01';
-
-      const { data, error } = await supabase
-        .from('maintenances')
-        .insert([
-          {
-            client_name: maintenanceInfo.clientName,
-            serial_number: maintenanceInfo.serialNumber,
-            year: maintenanceInfo.year,
-            model: maintenanceInfo.model,
-            maintenance_date: formattedDate,
-            progress: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (tasks.length > 0) {
-        const taskInserts = tasks.map((task, index) => ({
-          maintenance_id: data.id,
-          description: task,
-          completed: completedTasks.includes(task),
-          order_index: index,
-        }));
-
-        const { error: tasksError } = await supabase
-          .from('maintenance_tasks')
-          .insert(taskInserts);
-
-        if (tasksError) throw tasksError;
-      }
-
-      return data;
-    },
+    mutationFn: () => createMaintenance(maintenanceInfo, tasks, completedTasks),
     onSuccess: () => {
       navigate('/');
       toast({
@@ -136,50 +71,7 @@ export function useMaintenance(id?: string) {
   });
 
   const updateMaintenanceMutation = useMutation({
-    mutationFn: async () => {
-      if (!id) throw new Error('ID não encontrado');
-
-      const formattedDate = maintenanceInfo.maintenanceDate.split('-').slice(0, 2).join('-') + '-01';
-
-      // Atualiza os dados principais da manutenção
-      const { error: maintenanceError } = await supabase
-        .from('maintenances')
-        .update({
-          client_name: maintenanceInfo.clientName,
-          serial_number: maintenanceInfo.serialNumber,
-          year: maintenanceInfo.year,
-          model: maintenanceInfo.model,
-          maintenance_date: formattedDate,
-          progress: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
-        })
-        .eq('id', id);
-
-      if (maintenanceError) throw maintenanceError;
-
-      // Remove todas as tarefas antigas
-      const { error: deleteError } = await supabase
-        .from('maintenance_tasks')
-        .delete()
-        .eq('maintenance_id', id);
-
-      if (deleteError) throw deleteError;
-
-      // Insere todas as tarefas atualizadas
-      if (tasks.length > 0) {
-        const taskInserts = tasks.map((task, index) => ({
-          maintenance_id: id,
-          description: task,
-          completed: completedTasks.includes(task),
-          order_index: index,
-        }));
-
-        const { error: tasksError } = await supabase
-          .from('maintenance_tasks')
-          .insert(taskInserts);
-
-        if (tasksError) throw tasksError;
-      }
-    },
+    mutationFn: () => updateMaintenance(id!, maintenanceInfo, tasks, completedTasks),
     onSuccess: () => {
       toast({
         title: "Alterações salvas",
@@ -197,16 +89,7 @@ export function useMaintenance(id?: string) {
   });
 
   const deleteMaintenanceMutation = useMutation({
-    mutationFn: async () => {
-      if (!id) throw new Error('ID não encontrado');
-
-      const { error } = await supabase
-        .from('maintenances')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: () => deleteMaintenance(id!),
     onSuccess: () => {
       navigate('/');
       toast({
