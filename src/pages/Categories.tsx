@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Category } from "@/types/request";
-import { Plus, X, List } from "lucide-react";
+import { Plus, X, List, ArrowLeft } from "lucide-react";
 
 export default function Categories() {
+  const navigate = useNavigate();
   const [newCategory, setNewCategory] = useState("");
   const queryClient = useQueryClient();
 
@@ -75,6 +76,10 @@ export default function Categories() {
     createMutation.mutate(newCategory.trim());
   };
 
+  const handleBack = () => {
+    navigate("/solicitacoes");
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-4">
@@ -90,10 +95,16 @@ export default function Categories() {
     <div className="container mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <List className="h-6 w-6" />
-            Gerenciar Categorias
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <List className="h-6 w-6" />
+              Gerenciar Categorias
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={handleBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <form onSubmit={handleCreateCategory} className="flex gap-2">
