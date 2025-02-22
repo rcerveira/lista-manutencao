@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Request } from "@/types/request";
-import { FileText } from "lucide-react";
+import { FileText, Calendar, Package2, Hash, User, MessageSquare } from "lucide-react";
 
 export default function RequestDetails() {
   const navigate = useNavigate();
@@ -29,6 +29,7 @@ export default function RequestDetails() {
     quantity: "",
     requester: "",
     observations: "",
+    date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
   });
 
   const { data: categories, isLoading: loadingCategories } = useQuery({
@@ -74,15 +75,34 @@ export default function RequestDetails() {
     enabled: !isNewRequest,
   });
 
+  const { data: defaultStatus } = useQuery({
+    queryKey: ['default-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('request_status_types')
+        .select('*')
+        .eq('name', 'solicitado')
+        .single();
+
+      if (error) {
+        toast.error("Erro ao carregar status padrão");
+        throw error;
+      }
+
+      return data;
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      if (!defaultStatus) throw new Error("Status padrão não encontrado");
+
       const { error } = await supabase
         .from('requests')
         .insert([{
           ...data,
-          date: new Date().toISOString(),
           quantity: parseInt(data.quantity),
-          status: 'solicitado'
+          status: defaultStatus.id
         }]);
 
       if (error) throw error;
@@ -146,7 +166,22 @@ export default function RequestDetails() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Nome do Item</label>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Data
+              </label>
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Package2 className="h-4 w-4" />
+                Nome do Item
+              </label>
               <Input
                 placeholder="Ex: Parafuso M8"
                 value={formData.item_name}
@@ -174,7 +209,10 @@ export default function RequestDetails() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Quantidade</label>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Hash className="h-4 w-4" />
+                Quantidade
+              </label>
               <Input
                 type="number"
                 min="1"
@@ -185,7 +223,10 @@ export default function RequestDetails() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Solicitante</label>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Solicitante
+              </label>
               <Input
                 placeholder="Seu nome"
                 value={formData.requester}
@@ -194,7 +235,10 @@ export default function RequestDetails() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Observações</label>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Observações
+              </label>
               <Textarea
                 placeholder="Observações adicionais (opcional)"
                 value={formData.observations}
