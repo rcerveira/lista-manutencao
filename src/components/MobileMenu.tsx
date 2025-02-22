@@ -17,7 +17,6 @@ export function MobileMenu() {
   const mainMenuItems = [
     { name: "Início", path: "/" },
     { name: "Manutenções", path: "/manutencoes" },
-    { name: "Solicitações", path: "/solicitacoes" },
   ];
 
   const submenuItems = [
@@ -45,35 +44,45 @@ export function MobileMenu() {
               </Button>
             </SheetClose>
           ))}
-          <div className="border-l-2 border-muted ml-2 pl-2">
+          
+          <SheetClose asChild>
             <Button
               variant="ghost"
-              className="justify-between w-full"
-              onClick={() => setIsSubmenuOpen(!isSubmenuOpen)}
+              className="justify-start"
+              onClick={() => navigate("/solicitacoes")}
             >
-              Configurações
-              {isSubmenuOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
+              Solicitações
             </Button>
-            {isSubmenuOpen && (
-              <div className="ml-4 space-y-1">
-                {submenuItems.map((item) => (
-                  <SheetClose key={item.path} asChild>
-                    <Button
-                      variant="ghost"
-                      className="justify-start w-full text-sm"
-                      onClick={() => navigate(item.path)}
-                    >
-                      {item.name}
-                    </Button>
-                  </SheetClose>
-                ))}
-              </div>
+          </SheetClose>
+
+          <Button
+            variant="ghost"
+            className="justify-between"
+            onClick={() => setIsSubmenuOpen(!isSubmenuOpen)}
+          >
+            Configurações
+            {isSubmenuOpen ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
             )}
-          </div>
+          </Button>
+          
+          {isSubmenuOpen && (
+            <div className="space-y-1">
+              {submenuItems.map((item) => (
+                <SheetClose key={item.path} asChild>
+                  <Button
+                    variant="ghost"
+                    className="justify-start w-full text-sm pl-4"
+                    onClick={() => navigate(item.path)}
+                  >
+                    {item.name}
+                  </Button>
+                </SheetClose>
+              ))}
+            </div>
+          )}
         </nav>
       </SheetContent>
     </Sheet>
