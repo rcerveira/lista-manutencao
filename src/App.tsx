@@ -37,6 +37,7 @@ export default function App() {
                 <Route path="/solicitacao/:id" element={<RequestDetails />} />
                 <Route path="/categorias" element={<Categories />} />
                 <Route path="/status-solicitacao" element={<RequestStatuses />} />
+                <Route path="/status" element={<RequestStatuses />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />
