@@ -32,8 +32,8 @@ export default function App() {
                 <Route path="/manutencoes" element={<Manutencoes />} />
                 <Route path="/manutencoes/:id" element={<ManutencaoDetalhes />} />
                 <Route path="/solicitacoes" element={<Requests />} />
-                <Route path="/solicitacoes/nova" element={<RequestDetails />} />
-                <Route path="/solicitacoes/:id" element={<RequestDetails />} />
+                <Route path="/solicitacao/nova" element={<RequestDetails />} />
+                <Route path="/solicitacao/:id" element={<RequestDetails />} />
                 <Route path="/categorias" element={<Categories />} />
                 <Route path="/status-solicitacao" element={<RequestStatuses />} />
                 <Route path="*" element={<NotFound />} />
