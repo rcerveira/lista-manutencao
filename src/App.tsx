@@ -30,7 +30,8 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/manutencoes" element={<Manutencoes />} />
-                <Route path="/manutencoes/:id" element={<ManutencaoDetalhes />} />
+                <Route path="/manutencao/nova" element={<ManutencaoDetalhes />} />
+                <Route path="/manutencao/:id" element={<ManutencaoDetalhes />} />
                 <Route path="/solicitacoes" element={<Requests />} />
                 <Route path="/solicitacao/nova" element={<RequestDetails />} />
                 <Route path="/solicitacao/:id" element={<RequestDetails />} />
