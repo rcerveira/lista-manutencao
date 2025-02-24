@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +18,7 @@ interface FormData {
 export function useRequestForm(id: string | undefined, request: Request | null) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const isNewRequest = id === 'nova';
+  const isNewRequest = !id || id === 'nova';
 
   const [formData, setFormData] = useState<FormData>({
     item_name: "",
