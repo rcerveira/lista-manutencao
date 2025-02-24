@@ -1,36 +1,16 @@
-import { useState, useEffect } from "react";
+
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Request } from "@/types/request";
-import { FileText, Calendar, Package2, Hash, User, MessageSquare, ArrowLeft, Trash2 } from "lucide-react";
+import { useRequestForm } from "@/hooks/useRequestForm";
+import { RequestHeader } from "@/components/request/RequestHeader";
+import { RequestForm } from "@/components/request/RequestForm";
 
 export default function RequestDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const queryClient = useQueryClient();
-  const isNewRequest = id === 'nova';
-  
-  const [formData, setFormData] = useState({
-    item_name: "",
-    category_id: "",
-    quantity: "",
-    requester: "",
-    observations: "",
-    date: new Date().toISOString().split('T')[0],
-  });
 
   const { data: categories, isLoading: loadingCategories } = useQuery({
     queryKey: ['categories'],
@@ -52,7 +32,7 @@ export default function RequestDetails() {
   const { data: request } = useQuery({
     queryKey: ['request', id],
     queryFn: async () => {
-      if (isNewRequest) return null;
+      if (id === 'nova') return null;
 
       const { data, error } = await supabase
         .from('requests')
@@ -72,77 +52,7 @@ export default function RequestDetails() {
 
       return data;
     },
-    enabled: !isNewRequest,
-  });
-
-  useEffect(() => {
-    if (request) {
-      setFormData({
-        item_name: request.item_name,
-        category_id: request.category_id || "",
-        quantity: request.quantity.toString(),
-        requester: request.requester,
-        observations: request.observations || "",
-        date: request.date,
-      });
-    }
-  }, [request]);
-
-  const updateRequestMutation = useMutation({
-    mutationFn: async () => {
-      if (isNewRequest) return null;
-
-      const { error } = await supabase
-        .from('requests')
-        .update({
-          item_name: formData.item_name,
-          category_id: formData.category_id,
-          quantity: parseInt(formData.quantity),
-          requester: formData.requester,
-          observations: formData.observations,
-          date: formData.date,
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
-      toast.success("Solicitação atualizada com sucesso");
-      navigate("/solicitacoes");
-    },
-    onError: () => {
-      toast.error("Erro ao atualizar solicitação");
-    },
-  });
-
-  const createRequestMutation = useMutation({
-    mutationFn: async () => {
-      if (!isNewRequest) return null;
-      if (!defaultStatus) throw new Error("Status padrão não encontrado");
-
-      const { error } = await supabase
-        .from('requests')
-        .insert({
-          item_name: formData.item_name,
-          category_id: formData.category_id,
-          quantity: parseInt(formData.quantity),
-          requester: formData.requester,
-          observations: formData.observations,
-          date: formData.date,
-          status: defaultStatus.id
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
-      toast.success("Solicitação criada com sucesso");
-      navigate("/solicitacoes");
-    },
-    onError: () => {
-      toast.error("Erro ao criar solicitação");
-    },
+    enabled: Boolean(id),
   });
 
   const { data: defaultStatus } = useQuery({
@@ -177,24 +87,14 @@ export default function RequestDetails() {
     },
   });
 
-  const deleteRequestMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('requests')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
-      toast.success("Solicitação excluída com sucesso");
-      navigate("/solicitacoes");
-    },
-    onError: () => {
-      toast.error("Erro ao excluir solicitação");
-    },
-  });
+  const {
+    formData,
+    setFormData,
+    updateRequestMutation,
+    createRequestMutation,
+    deleteRequestMutation,
+    isNewRequest
+  } = useRequestForm(id, request);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,7 +121,7 @@ export default function RequestDetails() {
         toast.error("Erro: Status padrão não encontrado");
         return;
       }
-      createRequestMutation.mutate();
+      createRequestMutation.mutate(defaultStatus.id);
     } else {
       updateRequestMutation.mutate();
     }
@@ -237,7 +137,7 @@ export default function RequestDetails() {
     navigate("/solicitacoes");
   };
 
-  if (loadingCategories || !request && !isNewRequest) {
+  if (loadingCategories || (!request && !isNewRequest)) {
     return (
       <div className="container mx-auto p-4">
         <div className="animate-pulse space-y-4">
@@ -251,138 +151,23 @@ export default function RequestDetails() {
   return (
     <div className="container mx-auto p-4">
       <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-                className="w-full sm:w-auto"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar para Lista
-              </Button>
-              {!isNewRequest && id && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDelete}
-                  disabled={deleteRequestMutation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Excluir
-                </Button>
-              )}
-            </div>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-6 w-6" />
-              {isNewRequest ? "Nova Solicitação" : "Detalhes da Solicitação"}
-            </CardTitle>
-          </div>
-        </CardHeader>
+        <RequestHeader
+          isNewRequest={isNewRequest}
+          id={id}
+          onCancel={handleCancel}
+          onDelete={handleDelete}
+          isDeleting={deleteRequestMutation.isPending}
+        />
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Data
-              </label>
-              <Input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Package2 className="h-4 w-4" />
-                Nome do Item
-              </label>
-              <Input
-                placeholder="Ex: Parafuso M8"
-                value={formData.item_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, item_name: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Categoria</label>
-              <Select
-                value={formData.category_id}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories?.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Hash className="h-4 w-4" />
-                Quantidade
-              </label>
-              <Input
-                type="number"
-                min="1"
-                placeholder="Ex: 10"
-                value={formData.quantity}
-                onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Solicitante
-              </label>
-              <Input
-                placeholder="Seu nome"
-                value={formData.requester}
-                onChange={(e) => setFormData(prev => ({ ...prev, requester: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Observações
-              </label>
-              <Textarea
-                placeholder="Observações adicionais (opcional)"
-                value={formData.observations}
-                onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
-              />
-            </div>
-
-            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleCancel}
-                className="w-full sm:w-auto"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createRequestMutation.isPending}
-                className="w-full sm:w-auto"
-              >
-                {isNewRequest ? "Criar Solicitação" : "Salvar Alterações"}
-              </Button>
-            </div>
-          </form>
+          <RequestForm
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            categories={categories}
+            isNewRequest={isNewRequest}
+            isSubmitting={createRequestMutation.isPending || updateRequestMutation.isPending}
+          />
         </CardContent>
       </Card>
     </div>
