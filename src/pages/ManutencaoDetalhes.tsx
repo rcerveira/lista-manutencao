@@ -1,4 +1,5 @@
 
+import React, { useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import { MaintenanceHeader } from "@/components/maintenance/MaintenanceHeader";
@@ -34,7 +35,7 @@ export default function ManutencaoDetalhes() {
   } = useMaintenanceTasks(maintenanceTasks);
 
   // Sincroniza as tasks quando elas são carregadas do backend
-  React.useEffect(() => {
+  useEffect(() => {
     if (maintenanceTasks && maintenanceCompletedTasks) {
       setTasks(maintenanceTasks);
       setCompletedTasks(maintenanceCompletedTasks);
