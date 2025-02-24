@@ -16,6 +16,12 @@ import {
 import { ArrowLeft, ListChecks, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { RequestStatusType } from "@/types/request";
+import {
+  Dialog,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 const colorOptions = [
   { label: "Cinza", value: "bg-gray-100 text-gray-700" },
@@ -31,6 +37,8 @@ export default function RequestStatuses() {
   const queryClient = useQueryClient();
   const [newStatus, setNewStatus] = useState("");
   const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [statusToDelete, setStatusToDelete] = useState<RequestStatusType | null>(null);
 
   const { data: statuses, isLoading } = useQuery({
     queryKey: ['request-statuses'],
@@ -80,9 +88,13 @@ export default function RequestStatuses() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['request-statuses'] });
       toast.success("Status removido com sucesso");
+      setIsConfirmOpen(false);
+      setStatusToDelete(null);
     },
     onError: () => {
       toast.error("Erro ao remover status");
+      setIsConfirmOpen(false);
+      setStatusToDelete(null);
     },
   });
 
@@ -107,10 +119,17 @@ export default function RequestStatuses() {
   };
 
   const handleDeleteStatus = async (status: RequestStatusType) => {
+    setStatusToDelete(status);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!statusToDelete) return;
+
     const { count, error } = await supabase
       .from('requests')
       .select('*', { count: 'exact', head: true })
-      .eq('status', status.id);
+      .eq('status', statusToDelete.id);
 
     if (error) {
       toast.error("Erro ao verificar uso do status");
@@ -119,10 +138,12 @@ export default function RequestStatuses() {
 
     if (count && count > 0) {
       toast.error("Não é possível remover um status que está em uso");
+      setIsConfirmOpen(false);
+      setStatusToDelete(null);
       return;
     }
 
-    deleteStatusMutation.mutate(status.id);
+    deleteStatusMutation.mutate(statusToDelete.id);
   };
 
   if (isLoading) {
@@ -137,74 +158,93 @@ export default function RequestStatuses() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <ListChecks className="h-6 w-6" />
-              Gerenciar Status
-            </CardTitle>
-            <Button variant="outline" size="sm" onClick={handleBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleCreateStatus} className="flex gap-2">
-            <Input
-              placeholder="Nome do novo status..."
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="flex-1"
-            />
-            <Select value={selectedColor} onValueChange={setSelectedColor}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue>Selecione uma cor</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {colorOptions.map((color) => (
-                  <SelectItem
-                    key={color.value}
-                    value={color.value}
-                    className={color.value}
-                  >
-                    {color.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="submit" disabled={createStatusMutation.isPending}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar
-            </Button>
-          </form>
+    <>
+      <div className="container mx-auto p-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <ListChecks className="h-6 w-6" />
+                Gerenciar Status
+              </CardTitle>
+              <Button variant="outline" size="sm" onClick={handleBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <form onSubmit={handleCreateStatus} className="flex gap-2">
+              <Input
+                placeholder="Nome do novo status..."
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+                className="flex-1"
+              />
+              <Select value={selectedColor} onValueChange={setSelectedColor}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue>Selecione uma cor</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {colorOptions.map((color) => (
+                    <SelectItem
+                      key={color.value}
+                      value={color.value}
+                      className={color.value}
+                    >
+                      {color.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button type="submit" disabled={createStatusMutation.isPending}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar
+              </Button>
+            </form>
 
-          <div className="grid gap-3">
-            {statuses?.map((status) => (
-              <div
-                key={status.id}
-                className="flex items-center justify-between p-4 rounded-lg border"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1 rounded-md text-sm font-medium ${status.color}`}>
-                    {status.label}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteStatus(status)}
-                  disabled={deleteStatusMutation.isPending}
+            <div className="grid gap-3">
+              {statuses?.map((status) => (
+                <div
+                  key={status.id}
+                  className="flex items-center justify-between p-4 rounded-lg border"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <div className="flex items-center gap-3">
+                    <div className={`px-3 py-1 rounded-md text-sm font-medium ${status.color}`}>
+                      {status.label}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteStatus(status)}
+                    disabled={deleteStatusMutation.isPending}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent>
+          <DialogTitle>Confirmar exclusão</DialogTitle>
+          <DialogDescription>
+            Tem certeza que deseja excluir este status? Esta ação não pode ser desfeita.
+          </DialogDescription>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Excluir
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
