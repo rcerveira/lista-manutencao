@@ -20,11 +20,11 @@ export function MaintenanceHeaderActions({
   isDeleting
 }: MaintenanceHeaderActionsProps) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="flex flex-col-reverse gap-2 w-full sm:flex-row sm:items-center sm:w-auto">
       <Button 
         variant="outline" 
         onClick={onPrint}
-        className="w-full sm:w-auto order-2 sm:order-1"
+        className="w-full sm:w-auto"
       >
         <Printer className="h-4 w-4 mr-2" />
         Imprimir PDF
@@ -35,7 +35,7 @@ export function MaintenanceHeaderActions({
           variant="destructive"
           onClick={onDelete}
           disabled={isDeleting}
-          className="w-full sm:w-auto order-3 sm:order-2"
+          className="w-full sm:w-auto"
         >
           <Trash2 className="h-4 w-4 mr-2" />
           {isDeleting ? "Excluindo..." : "Excluir"}
@@ -45,7 +45,7 @@ export function MaintenanceHeaderActions({
       <Button 
         onClick={onSave} 
         disabled={isSaving}
-        className="w-full sm:w-auto order-1 sm:order-3"
+        className="w-full sm:w-auto"
       >
         {isSaving ? "Salvando..." : "Salvar"}
       </Button>

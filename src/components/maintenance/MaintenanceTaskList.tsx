@@ -66,7 +66,7 @@ export function MaintenanceTaskList({
           Adicionar
         </Button>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-4 mt-4">
         {tasks.map((task, index) => (
           <div
             key={task}
