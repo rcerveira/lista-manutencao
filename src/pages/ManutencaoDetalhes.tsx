@@ -17,6 +17,8 @@ export default function ManutencaoDetalhes() {
     tasks: maintenanceTasks,
     completedTasks: maintenanceCompletedTasks,
     setMaintenanceInfo,
+    setTasks: setMaintenanceTasks,
+    setCompletedTasks: setMaintenanceCompletedTasks,
     createMaintenanceMutation,
     updateMaintenanceMutation,
     deleteMaintenanceMutation
@@ -41,6 +43,12 @@ export default function ManutencaoDetalhes() {
       setCompletedTasks(maintenanceCompletedTasks);
     }
   }, [maintenanceTasks, maintenanceCompletedTasks]);
+
+  // Sincroniza as alterações nas tasks com o estado principal
+  useEffect(() => {
+    setMaintenanceTasks(tasks);
+    setMaintenanceCompletedTasks(completedTasks);
+  }, [tasks, completedTasks]);
 
   const handleSave = () => {
     if (
