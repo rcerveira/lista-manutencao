@@ -21,7 +21,7 @@ export function MobileMenu() {
 
   const submenuItems = [
     { name: "Categorias", path: "/categorias" },
-    { name: "Status", path: "/status" },
+    { name: "Status", path: "/status-solicitacao" },
   ];
 
   return (
