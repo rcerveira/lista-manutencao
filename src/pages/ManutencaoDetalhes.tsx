@@ -44,12 +44,7 @@ export default function ManutencaoDetalhes() {
     }
   }, [maintenanceTasks, maintenanceCompletedTasks]);
 
-  // Sincroniza as alterações nas tasks com o estado principal
-  useEffect(() => {
-    setMaintenanceTasks(tasks);
-    setMaintenanceCompletedTasks(completedTasks);
-  }, [tasks, completedTasks]);
-
+  // Sincroniza as alterações nas tasks com o estado principal apenas quando salvar
   const handleSave = () => {
     if (
       !maintenanceInfo.clientName ||
@@ -65,6 +60,10 @@ export default function ManutencaoDetalhes() {
       });
       return;
     }
+
+    // Atualiza o estado principal com as tasks atuais antes de salvar
+    setMaintenanceTasks(tasks);
+    setMaintenanceCompletedTasks(completedTasks);
 
     if (isEditing) {
       updateMaintenanceMutation.mutate();
