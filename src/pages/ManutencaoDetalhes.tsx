@@ -13,6 +13,8 @@ export default function ManutencaoDetalhes() {
   const {
     isEditing,
     maintenanceInfo,
+    tasks: maintenanceTasks,
+    completedTasks: maintenanceCompletedTasks,
     setMaintenanceInfo,
     createMaintenanceMutation,
     updateMaintenanceMutation,
@@ -26,8 +28,18 @@ export default function ManutencaoDetalhes() {
     handleAddTask,
     handleDeleteTask,
     handleEditTask,
-    handleReorderTasks
-  } = useMaintenanceTasks();
+    handleReorderTasks,
+    setTasks,
+    setCompletedTasks
+  } = useMaintenanceTasks(maintenanceTasks);
+
+  // Sincroniza as tasks quando elas são carregadas do backend
+  React.useEffect(() => {
+    if (maintenanceTasks && maintenanceCompletedTasks) {
+      setTasks(maintenanceTasks);
+      setCompletedTasks(maintenanceCompletedTasks);
+    }
+  }, [maintenanceTasks, maintenanceCompletedTasks]);
 
   const handleSave = () => {
     if (
@@ -73,7 +85,7 @@ export default function ManutencaoDetalhes() {
     }));
   };
 
-  const progress = (completedTasks.length / tasks.length) * 100;
+  const progress = tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
