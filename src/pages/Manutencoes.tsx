@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -34,7 +35,7 @@ export default function Manutencoes() {
         throw error;
       }
 
-      return data;
+      return data || [];
     },
   });
 
@@ -61,9 +62,9 @@ export default function Manutencoes() {
       <div className="container mx-auto p-4">
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-48 bg-muted rounded"></div>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-muted rounded"></div>
+              <div key={i} className="h-[300px] bg-muted rounded"></div>
             ))}
           </div>
         </div>
@@ -79,6 +80,13 @@ export default function Manutencoes() {
       return 'Data inválida';
     }
   };
+
+  const filteredMaintenances = maintenances?.filter(
+    (record) =>
+      record.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.serial_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.model.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -112,82 +120,81 @@ export default function Manutencoes() {
         />
       </div>
 
-      <div className="grid gap-4">
-        {maintenances
-          ?.filter(
-            (record) =>
-              record.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              record.serial_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              record.model.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-          .map((record) => (
-            <Card
-              key={record.id}
-              className="hover:bg-accent/50 transition-colors cursor-pointer"
-              onClick={() => handleViewDetails(record.id)}
-            >
-              <CardContent className="p-4 sm:p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredMaintenances.map((record) => (
+          <Card
+            key={record.id}
+            className="hover:bg-accent/50 transition-colors cursor-pointer"
+            onClick={() => handleViewDetails(record.id)}
+          >
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold text-lg line-clamp-1">{record.client_name}</h2>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                </div>
+
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-lg line-clamp-1">{record.client_name}</h2>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Wrench className="h-4 w-4 shrink-0" />
-                        <span>Informações do Equipamento</span>
-                      </div>
-                      <div className="text-sm space-y-1 pl-6">
-                        <p className="flex justify-between">
-                          <span className="text-muted-foreground">Modelo:</span>
-                          <span>{record.model}</span>
-                        </p>
-                        <p className="flex justify-between">
-                          <span className="text-muted-foreground">Número de Série:</span>
-                          <span>{record.serial_number}</span>
-                        </p>
-                        <p className="flex justify-between">
-                          <span className="text-muted-foreground">Ano:</span>
-                          <span>{record.year}</span>
-                        </p>
-                      </div>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Wrench className="h-4 w-4 shrink-0" />
+                      <span>Informações do Equipamento</span>
                     </div>
-
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Calendar className="h-4 w-4 shrink-0" />
-                        <span>Data da Manutenção</span>
-                      </div>
-                      <p className="text-sm pl-6">
-                        {formatMaintenanceDate(record.maintenance_date)}
+                    <div className="text-sm space-y-1 pl-6">
+                      <p className="flex justify-between">
+                        <span className="text-muted-foreground">Modelo:</span>
+                        <span>{record.model}</span>
+                      </p>
+                      <p className="flex justify-between">
+                        <span className="text-muted-foreground">Número de Série:</span>
+                        <span>{record.serial_number}</span>
+                      </p>
+                      <p className="flex justify-between">
+                        <span className="text-muted-foreground">Ano:</span>
+                        <span>{record.year}</span>
                       </p>
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 shrink-0" />
-                        <span>Progresso: {record.progress}%</span>
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Calendar className="h-4 w-4 shrink-0" />
+                      <span>Data da Manutenção</span>
+                    </div>
+                    <p className="text-sm pl-6">
+                      {formatMaintenanceDate(record.maintenance_date)}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      <span>Progresso</span>
+                    </div>
+                    <div className="pl-6 space-y-2">
+                      <div className="w-full bg-secondary h-2 rounded-full">
+                        <div
+                          className={`h-2 rounded-full transition-all ${getProgressBarColor(record.progress)}`}
+                          style={{ width: `${record.progress}%` }}
+                        />
                       </div>
-                      <div className="pl-6 space-y-2">
-                        <div className="w-full bg-secondary h-2 rounded-full">
-                          <div
-                            className={`h-2 rounded-full transition-all ${getProgressBarColor(record.progress)}`}
-                            style={{ width: `${record.progress}%` }}
-                          />
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {record.maintenance_tasks?.filter(t => t.completed).length || 0} de {record.maintenance_tasks?.length || 0} tarefas concluídas
-                        </div>
+                      <div className="text-sm text-muted-foreground">
+                        {record.maintenance_tasks?.filter(t => t.completed).length || 0} de {record.maintenance_tasks?.length || 0} tarefas concluídas
                       </div>
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {filteredMaintenances.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          Nenhuma manutenção encontrada
+        </div>
+      )}
     </div>
   );
 }
